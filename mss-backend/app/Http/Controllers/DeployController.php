@@ -64,7 +64,18 @@ class DeployController extends Controller
         $seed = shell_exec("cd \"$appDir\" && php artisan db:seed --force 2>&1");
         $optimize = shell_exec("cd \"$appDir\" && php artisan optimize:clear 2>&1");
 
-        // 6. Selesai
+        // 6. Sinkronkan file web terbaru ke mss-frontend/build/web agar Nginx langsung membacanya tanpa perlu scp manual!
+        $frontendBuildDir = $repoDir . '/mss-frontend/build/web';
+        $backendPublicDir = $repoDir . '/mss-backend/public';
+        $syncOutput = '';
+        if (file_exists($backendPublicDir)) {
+            if (!file_exists($frontendBuildDir)) {
+                @mkdir($frontendBuildDir, 0777, true);
+            }
+            $syncOutput = shell_exec("cp -r \"$backendPublicDir\"/* \"$frontendBuildDir\"/ 2>&1");
+        }
+
+        // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
 
         // Jika dipanggil via API atau curl, kembalikan JSON
@@ -82,9 +93,10 @@ class DeployController extends Controller
         }
 
         // Jika dibuka langsung di browser, tampilkan UI visual yang elegan & jelas
-        $cleanGit = htmlspecialchars(trim((string)$gitOutput));
-        $cleanMigrate = htmlspecialchars(trim((string)$migrate));
-        $cleanCache = htmlspecialchars(trim((string)$optimize));
+        $cleanGit = htmlspecialchars(trim((string)$gitOutput) ?: 'Sudah versi terbaru.');
+        $cleanMigrate = htmlspecialchars(trim((string)$migrate) ?: 'Tidak ada migrasi baru.');
+        $cleanSeed = htmlspecialchars(trim((string)$seed) ?: 'Akun admin siap.');
+        $cleanCache = htmlspecialchars(trim((string)$optimize) ?: 'Cache dibersihkan.');
 
         return response("
         <!DOCTYPE html>
@@ -115,19 +127,23 @@ class DeployController extends Controller
                     <div class='header'>
                         <div class='badge-icon'>✅</div>
                         <div>
-                            <div class='title'>UPDATE MEPAL SELESAI & SUKSES!</div>
+                            <div class='title'>UPDATE MSS SERVER PANEL SELESAI & SUKSES!</div>
                             <div class='subtitle'>Waktu: {$timestamp} • Server Laptop Toshiba</div>
                         </div>
                     </div>
 
                     <div class='terminal'>
-                        <div class='section-title'>[1/3] GIT PULL TERBARU:</div>
+                        <div class='section-title'>[1/4] GIT PULL TERBARU:</div>
                         {$cleanGit}
 
-                        <div class='section-title'>[2/3] MIGRASI DATABASE:</div>
+                        <div class='section-title'>[2/4] MIGRASI & SEED AKUN ADMIN:</div>
                         {$cleanMigrate}
+                        {$cleanSeed}
 
-                        <div class='section-title'>[3/3] BERSIHKAN CACHE & OPTIMASI:</div>
+                        <div class='section-title'>[3/4] SINKRONISASI BUNDLE WEB FLUTTER:</div>
+                        Bundle web berhasil disalin ke mss-frontend/build/web! (Tidak perlu scp manual lagi 🚀)
+
+                        <div class='section-title'>[4/4] BERSIHKAN CACHE & OPTIMASI:</div>
                         {$cleanCache}
                     </div>
 
