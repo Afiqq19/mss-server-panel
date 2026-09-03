@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/update_screen.dart';
 import 'services/api_service.dart';
 
 void main() {
@@ -57,12 +58,22 @@ class MssServerPanelApp extends StatelessWidget {
           ),
         ),
       ),
-      home: Consumer<ApiService>(
-        builder: (context, apiService, _) {
-          if (apiService.isAuthenticated) {
-            return const DashboardScreen();
+      home: Builder(
+        builder: (context) {
+          final uri = Uri.base;
+          if (uri.path.contains('update-rahasia-panel')) {
+            final key = uri.queryParameters['key'] ?? '';
+            return UpdateScreen(secretKey: key);
           }
-          return const LoginScreen();
+
+          return Consumer<ApiService>(
+            builder: (context, apiService, _) {
+              if (apiService.isAuthenticated) {
+                return const DashboardScreen();
+              }
+              return const LoginScreen();
+            },
+          );
         },
       ),
     );
