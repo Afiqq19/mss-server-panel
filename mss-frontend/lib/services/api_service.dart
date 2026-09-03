@@ -8,11 +8,29 @@ import '../models/host_stats_model.dart';
 import '../models/user_model.dart';
 
 class ApiService extends ChangeNotifier {
-  // Base URL: In local dev connects to Laravel artisan serve at port 8000
-  String _baseUrl = 'http://127.0.0.1:8000/api';
+  late String _baseUrl;
   String? _token;
   UserModel? _user;
   bool _isAuthenticated = false;
+
+  ApiService() {
+    _initBaseUrl();
+  }
+
+  void _initBaseUrl() {
+    if (kIsWeb) {
+      final origin = Uri.base.origin;
+      // Jika diuji di dev port 3000 pada localhost, arahkan ke backend lokal port 8000
+      if (origin.contains('localhost:3000') || origin.contains('127.0.0.1:3000')) {
+        _baseUrl = 'http://127.0.0.1:8000/api';
+      } else {
+        // Jika di domain publik (misal panel.xie.my.id) atau IP LAN (192.168.1.100), gunakan domain asal
+        _baseUrl = '$origin/api';
+      }
+    } else {
+      _baseUrl = 'http://127.0.0.1:8000/api';
+    }
+  }
 
   String get baseUrl => _baseUrl;
   String? get token => _token;
