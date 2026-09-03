@@ -59,8 +59,9 @@ class DeployController extends Controller
         $fetch = shell_exec("git -c safe.directory=* -C \"$repoDir\" fetch --all 2>&1");
         $gitOutput = shell_exec("git -c safe.directory=* -C \"$repoDir\" reset --hard origin/main 2>&1");
 
-        // 5. Jalankan migrasi dan pembersihan cache Laravel
+        // 5. Jalankan migrasi, seeding akun admin default, dan pembersihan cache Laravel
         $migrate = shell_exec("cd \"$appDir\" && php artisan migrate --force 2>&1");
+        $seed = shell_exec("cd \"$appDir\" && php artisan db:seed --force 2>&1");
         $optimize = shell_exec("cd \"$appDir\" && php artisan optimize:clear 2>&1");
 
         // 6. Reload container Nginx mss-frontend via Docker socket agar bundle web terbaru langsung aktif
