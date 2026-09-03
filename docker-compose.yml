@@ -1,0 +1,104 @@
+services:
+  # ==========================================
+  # Laravel Backend Service (API Gateway)
+  # ==========================================
+  mss-backend:
+    build:
+      context: ./mss-backend
+      dockerfile: Dockerfile
+    container_name: mss-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    working_dir: /var/www/html
+    volumes:
+      - ./mss-backend:/var/www/html
+      # Host mounts for Linux VPS Monitoring & Backup Modules
+      # These paths are mapped into container so Laravel can read host hardware & backup files
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/host/backup-server:ro
+      - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/host/backup-scripts:ro
+    environment:
+      APP_NAME: "${APP_NAME:-MSS-Server-Panel}"
+      APP_ENV: "${APP_ENV:-local}"
+      APP_KEY: "${APP_KEY:-}"
+      APP_DEBUG: "${APP_DEBUG:-true}"
+      APP_URL: "${APP_URL:-http://localhost:8000}"
+      
+      # Database Credentials (connected to mss-db service)
+      DB_CONNECTION: mysql
+      DB_HOST: mss-db
+      DB_PORT: 3306
+      DB_DATABASE: "${DB_DATABASE:-mss_panel}"
+      DB_USERNAME: "${DB_USERNAME:-mss_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-mss_secret_pass}"
+      
+      # Portainer API Settings
+      PORTAINER_URL: "${PORTAINER_URL:-http://localhost:9000}"
+      PORTAINER_API_KEY: "${PORTAINER_API_KEY:-}"
+      PORTAINER_ENDPOINT_ID: "${PORTAINER_ENDPOINT_ID:-1}"
+      
+      # VPS Host Metrics & Backup Paths
+      HOST_PROC_PATH: /host/proc
+      HOST_SYS_PATH: /host/sys
+      NEXTCLOUD_BACKUP_PATH: /host/backup-server
+      BACKUP_SCRIPT_PATH: /host/backup-scripts/jalankan-backup.sh
+    depends_on:
+      mss-db:
+        condition: service_healthy
+    networks:
+      - mss-network
+
+  # ==========================================
+  # MySQL Database Service
+  # ==========================================
+  mss-db:
+    image: mysql:8.0
+    container_name: mss-db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "${DB_EXTERNAL_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE:-mss_panel}"
+      MYSQL_USER: "${DB_USERNAME:-mss_user}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-mss_secret_pass}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_secret_pass}"
+    volumes:
+      - mss_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_secret_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - mss-network
+
+  # ==========================================
+  # Flutter Web Frontend (Nginx Server)
+  # (Enable when building web bundle: docker compose --profile frontend up)
+  # ==========================================
+  mss-frontend:
+    image: nginx:alpine
+    container_name: mss-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    volumes:
+      - ./mss-frontend/build/web:/usr/share/nginx/html:ro
+      - ./nginx-frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - mss-network
+    profiles:
+      - frontend
+      - full
+
+volumes:
+  mss_db_data:
+    driver: local
+
+networks:
+  mss-network:
+    driver: bridge

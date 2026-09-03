@@ -1,0 +1,32 @@
+# Environment files
+.env
+.env.backup
+.env.production
+mss-backend/.env
+mss-backend/.env.backup
+mss-backend/.env.production
+
+# Dependencies
+mss-backend/vendor/
+mss-backend/node_modules/
+
+# Storage & Logs
+mss-backend/storage/*.key
+mss-backend/storage/logs/
+mss-backend/storage/framework/cache/
+mss-backend/storage/framework/sessions/
+mss-backend/storage/framework/views/
+mss-backend/storage/pail/
+*.log
+
+# Flutter temporary
+mss-frontend/.dart_tool/
+mss-frontend/build/
+mss-frontend/.flutter-plugins
+mss-frontend/.flutter-plugins-dependencies
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
