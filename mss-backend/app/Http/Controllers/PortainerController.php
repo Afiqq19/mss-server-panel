@@ -20,9 +20,9 @@ class PortainerController extends Controller
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(config('services.portainer.url') ?: env('PORTAINER_URL', 'http://127.0.0.1:9000'), '/');
-        $this->apiKey = config('services.portainer.api_key') ?: env('PORTAINER_API_KEY');
-        $this->endpointId = (int) (config('services.portainer.endpoint_id') ?: (env('PORTAINER_ENVIRONMENT_ID') ?: env('PORTAINER_ENDPOINT_ID', 1)));
+        $this->baseUrl = rtrim(config('services.portainer.url') ?: env('PORTAINER_URL', 'https://192.168.1.100:9443'), '/');
+        $this->apiKey = config('services.portainer.api_key') ?: env('PORTAINER_API_KEY', 'ptr_/For91NXCWIC2XT4ptN7kJo4QXRLrYAz1SpIJ0V2D7A=');
+        $this->endpointId = (int) (config('services.portainer.endpoint_id') ?: (env('PORTAINER_ENVIRONMENT_ID') ?: env('PORTAINER_ENDPOINT_ID', 3)));
     }
 
     /**
@@ -122,18 +122,31 @@ class PortainerController extends Controller
     }
 
     /**
-     * Memeriksa apakah port Portainer dapat diakses dalam hitungan milidetik
+     * Memeriksa apakah port Portainer dapat diakses dan mendeteksi host terbaik
      */
     protected function isPortainerReachable(): bool
     {
         $parts = parse_url($this->baseUrl);
-        $host = $parts['host'] ?? '127.0.0.1';
         $port = isset($parts['port']) ? (int) $parts['port'] : (($parts['scheme'] ?? '') === 'https' ? 9443 : 9000);
+        $scheme = $parts['scheme'] ?? 'https';
 
-        $fp = @fsockopen($host, $port, $errno, $errstr, 1.0);
-        if ($fp) {
-            fclose($fp);
-            return true;
+        $candidateHosts = [
+            $parts['host'] ?? '192.168.1.100',
+            'host.docker.internal',
+            '172.17.0.1',
+            '192.168.1.100',
+            '127.0.0.1',
+        ];
+
+        $candidateHosts = array_unique(array_filter($candidateHosts));
+
+        foreach ($candidateHosts as $host) {
+            $fp = @fsockopen($host, $port, $errno, $errstr, 0.8);
+            if ($fp) {
+                fclose($fp);
+                $this->baseUrl = "{$scheme}://{$host}:{$port}";
+                return true;
+            }
         }
 
         return false;

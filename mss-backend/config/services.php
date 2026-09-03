@@ -41,9 +41,9 @@ return [
     |--------------------------------------------------------------------------
     */
     'portainer' => [
-        'url' => env('PORTAINER_URL', 'http://127.0.0.1:9000'),
-        'api_key' => env('PORTAINER_API_KEY'),
-        'endpoint_id' => env('PORTAINER_ENVIRONMENT_ID', env('PORTAINER_ENDPOINT_ID', 1)),
+        'url' => env('PORTAINER_URL', 'https://192.168.1.100:9443'),
+        'api_key' => env('PORTAINER_API_KEY', 'ptr_/For91NXCWIC2XT4ptN7kJo4QXRLrYAz1SpIJ0V2D7A='),
+        'endpoint_id' => env('PORTAINER_ENVIRONMENT_ID', env('PORTAINER_ENDPOINT_ID', 3)),
     ],
 
     /*

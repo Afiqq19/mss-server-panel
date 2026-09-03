@@ -43,7 +43,7 @@ services:
       
       # Portainer API Settings
       PORTAINER_URL: "${PORTAINER_URL:-https://192.168.1.100:9443}"
-      PORTAINER_API_KEY: "${PORTAINER_API_KEY:-}"
+      PORTAINER_API_KEY: "${PORTAINER_API_KEY:-ptr_/For91NXCWIC2XT4ptN7kJo4QXRLrYAz1SpIJ0V2D7A=}"
       PORTAINER_ENDPOINT_ID: "${PORTAINER_ENDPOINT_ID:-3}"
       PORTAINER_ENVIRONMENT_ID: "${PORTAINER_ENVIRONMENT_ID:-3}"
       
@@ -52,6 +52,8 @@ services:
       HOST_SYS_PATH: /host/sys
       NEXTCLOUD_BACKUP_PATH: /host/backup-server
       BACKUP_SCRIPT_PATH: /home/mss/backup-otomatis/jalankan-backup.sh
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       mss-db:
         condition: service_healthy
