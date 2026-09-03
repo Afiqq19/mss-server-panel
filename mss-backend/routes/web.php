@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DeployController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -8,6 +9,9 @@ Route::get('/', function () {
     }
     return view('welcome');
 });
+
+// JSON Webhook Auto-Deploy Controller (Support GET & POST with key)
+Route::match(['get', 'post'], '/deploy-update', [DeployController::class, 'update']);
 
 // ============================================================
 // AUTO DEPLOY WEBHOOK (VERSI MEPAL SERVER)
