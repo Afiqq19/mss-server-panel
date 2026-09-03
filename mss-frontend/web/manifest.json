@@ -1,11 +1,11 @@
 {
-    "name": "mss_frontend",
-    "short_name": "mss_frontend",
+    "name": "MSS Server Panel",
+    "short_name": "MSS Panel",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#030712",
+    "theme_color": "#06b6d4",
+    "description": "MSS Server Panel - Self-Hosted Infrastructure Manager untuk Server Laptop Toshiba",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

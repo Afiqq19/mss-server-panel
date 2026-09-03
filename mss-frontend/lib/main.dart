@@ -23,7 +23,7 @@ class MssServerPanelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MSS Server Panel (Mepal)',
+      title: 'MSS Server Panel',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       theme: ThemeData(
