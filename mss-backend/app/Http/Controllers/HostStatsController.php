@@ -135,25 +135,58 @@ class HostStatsController extends Controller
 
     protected function getDiskUsage(): array
     {
-        $targetPath = '/';
-        if (PHP_OS_FAMILY === 'Windows') {
-            $targetPath = 'C:';
+        // Prioritas 1: Baca dari /host/proc/mounts - disk fisik host Toshiba via mount Docker
+        $procPath = $this->getProcPath();
+        $mountsFile = $procPath . '/mounts';
+
+        if (file_exists($mountsFile) && is_readable($mountsFile)) {
+            // Coba baca dari root filesystem host menggunakan df via shell
+            $dfOutput = shell_exec("df -B1 / 2>/dev/null | tail -1");
+            if ($dfOutput) {
+                $parts = preg_split('/\s+/', trim($dfOutput));
+                if (count($parts) >= 4 && is_numeric($parts[1]) && is_numeric($parts[2])) {
+                    $totalBytes = (float) $parts[1];
+                    $usedBytes  = (float) $parts[2];
+                    // Jika terbaca data yang masuk akal (total > 10GB)
+                    if ($totalBytes > 10 * 1024 * 1024 * 1024) {
+                        return [
+                            'total_gb' => round($totalBytes / (1024 * 1024 * 1024), 1),
+                            'used_gb'  => round($usedBytes  / (1024 * 1024 * 1024), 1),
+                        ];
+                    }
+                }
+            }
         }
 
-        $totalBytes = @disk_total_space($targetPath);
-        $freeBytes = @disk_free_space($targetPath);
+        // Prioritas 2: Coba /host atau mount point container yang paling dekat dengan host
+        $hostCandidates = ['/var/www', '/var/www/html', '/'];
+        foreach ($hostCandidates as $candidate) {
+            $totalBytes = @disk_total_space($candidate);
+            $freeBytes  = @disk_free_space($candidate);
+            if ($totalBytes && $freeBytes && $totalBytes > 10 * 1024 * 1024 * 1024) {
+                $usedBytes = $totalBytes - $freeBytes;
+                return [
+                    'total_gb' => round($totalBytes / (1024 * 1024 * 1024), 1),
+                    'used_gb'  => round($usedBytes  / (1024 * 1024 * 1024), 1),
+                ];
+            }
+        }
 
-        if ($totalBytes && $freeBytes) {
-            $usedBytes = $totalBytes - $freeBytes;
-            return [
-                'total_gb' => round($totalBytes / (1024 * 1024 * 1024), 1),
-                'used_gb' => round($usedBytes / (1024 * 1024 * 1024), 1),
-            ];
+        // Fallback jika Windows (lokal dev)
+        if (PHP_OS_FAMILY === 'Windows') {
+            $totalBytes = @disk_total_space('C:');
+            $freeBytes  = @disk_free_space('C:');
+            if ($totalBytes && $freeBytes) {
+                return [
+                    'total_gb' => round($totalBytes / (1024 * 1024 * 1024), 1),
+                    'used_gb'  => round(($totalBytes - $freeBytes) / (1024 * 1024 * 1024), 1),
+                ];
+            }
         }
 
         return [
             'total_gb' => 256.0,
-            'used_gb' => 120.5,
+            'used_gb'  => 120.5,
         ];
     }
 
