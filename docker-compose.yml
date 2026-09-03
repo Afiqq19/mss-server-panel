@@ -60,22 +60,25 @@ services:
       - mss-network
 
   # ==========================================
-  # MySQL Database Service
+  # MariaDB Database Service (Kompatibel dengan CPU Toshiba tanpa isu x86-64-v2)
   # ==========================================
   mss-db:
-    image: mysql:8.0
+    image: mariadb:10.11
     container_name: mss-db
     restart: unless-stopped
-    command: --default-authentication-plugin=mysql_native_password
     ports:
       - "${DB_EXTERNAL_PORT:-3307}:3306"
     environment:
+      MARIADB_DATABASE: "${DB_DATABASE:-mss_panel}"
+      MARIADB_USER: "${DB_USERNAME:-mss_user}"
+      MARIADB_PASSWORD: "${DB_PASSWORD:-mss_secret_pass}"
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_secret_pass}"
       MYSQL_DATABASE: "${DB_DATABASE:-mss_panel}"
       MYSQL_USER: "${DB_USERNAME:-mss_user}"
       MYSQL_PASSWORD: "${DB_PASSWORD:-mss_secret_pass}"
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_secret_pass}"
     volumes:
-      - mss_db_data:/var/lib/mysql
+      - mss_mariadb_data:/var/lib/mysql
     networks:
       - mss-network
 
@@ -99,6 +102,8 @@ services:
       - full
 
 volumes:
+  mss_mariadb_data:
+    driver: local
   mss_db_data:
     driver: local
 
