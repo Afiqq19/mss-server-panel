@@ -23,29 +23,26 @@ class BackupController extends Controller
 
     protected function getStoragePath(): string
     {
-        $configured = config('services.backup.storage_path');
-        if ($configured && is_dir($configured)) {
-            return rtrim($configured, '/');
-        }
+        $candidates = [
+            '/host/backup-server',
+            config('services.backup.storage_path'),
+            '/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server',
+        ];
 
-        if (is_dir('/host/backup-server')) {
-            return '/host/backup-server';
+        foreach ($candidates as $cand) {
+            if ($cand && is_dir($cand)) {
+                return rtrim($cand, '/');
+            }
         }
 
         $localDir = storage_path('app/backups');
         if (!is_dir($localDir)) {
-            @mkdir($localDir, 0755, true);
-            // Tambahkan contoh berkas backup awal jika direktori baru dibuat
-            file_put_contents($localDir . '/easpira_db_backup_20260902_230000.sql', "-- Backup Database E-Aspira Polmed\n");
-            file_put_contents($localDir . '/wordpress_db_backup_20260902_230000.sql', "-- Backup Database WordPress Website\n");
+            @mkdir($localDir, 0777, true);
         }
 
         return $localDir;
     }
 
-    /**
-     * Membaca daftar riwayat backup file dari Nextcloud NAS untuk semua proyek (Bab 9.B & Multi-Project)
-     */
     /**
      * Membaca daftar riwayat backup file dari Nextcloud NAS untuk semua proyek (Dinamis per Folder)
      */
@@ -184,9 +181,26 @@ class BackupController extends Controller
 
             // 2. Buat sub-folder terpisah dan backup untuk masing-masing proyek
             foreach ($projectsToBackup as $projSlug) {
+                // Buat folder via Nextcloud container jika docker socket aktif (mengatasi permission www-data secara tuntas)
+                if (file_exists('/var/run/docker.sock')) {
+                    shell_exec("docker exec nextcloud_nas mkdir -p \"/var/www/html/data/mss/files/Backup-Server/{$projSlug}\" 2>/dev/null");
+                    shell_exec("docker exec nextcloud_nas chmod -R 777 \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
+                }
+
                 $projectFolder = rtrim($storage, '/') . '/' . $projSlug;
                 if (!is_dir($projectFolder)) {
                     @mkdir($projectFolder, 0777, true);
+                    if (!is_dir($projectFolder)) {
+                        shell_exec("mkdir -p " . escapeshellarg($projectFolder) . " 2>/dev/null");
+                    }
+                }
+
+                // Fallback jika volume Nextcloud host masih ter-mount read-only
+                if (!is_dir($projectFolder) || !is_writable($projectFolder)) {
+                    $projectFolder = storage_path("app/backups/{$projSlug}");
+                    if (!is_dir($projectFolder)) {
+                        @mkdir($projectFolder, 0777, true);
+                    }
                 }
 
                 $filename = "{$projSlug}_db_backup_{$date}.sql";
@@ -195,7 +209,7 @@ class BackupController extends Controller
                 // Coba mariadb-dump langsung dari container jika nama container cocok
                 $dumpSuccess = false;
                 $dbContainer = null;
-                if ($projSlug === 'easpira') {
+                if ($projSlug === 'easpira' || str_contains($projSlug, 'easpira')) {
                     $dbContainer = 'db-easpira';
                 }
 
@@ -209,7 +223,7 @@ class BackupController extends Controller
 
                 if (!$dumpSuccess) {
                     $projTitle = ucwords(str_replace(['-', '_'], ' ', $projSlug));
-                    file_put_contents($filePath, "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projSlug}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n");
+                    @file_put_contents($filePath, "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projSlug}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n");
                 }
 
                 $created[] = "{$projSlug}/{$filename}";
