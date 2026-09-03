@@ -63,6 +63,12 @@ class DeployController extends Controller
         $migrate = shell_exec("cd \"$appDir\" && php artisan migrate --force 2>&1");
         $optimize = shell_exec("cd \"$appDir\" && php artisan optimize:clear 2>&1");
 
+        // 6. Reload container Nginx mss-frontend via Docker socket agar bundle web terbaru langsung aktif
+        $nginxReload = '';
+        if (file_exists('/var/run/docker.sock')) {
+            $nginxReload = shell_exec("curl -s -X POST --unix-socket /var/run/docker.sock http://localhost/containers/mss-frontend/restart 2>&1");
+        }
+
         $timestamp = date('d M Y - H:i:s T');
 
         // Jika dipanggil via API atau curl, kembalikan JSON

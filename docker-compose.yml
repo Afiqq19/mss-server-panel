@@ -97,9 +97,6 @@ services:
       - ./nginx-frontend.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - mss-network
-    profiles:
-      - frontend
-      - full
 
 volumes:
   mss_mariadb_data:
