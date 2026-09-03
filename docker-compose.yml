@@ -13,6 +13,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./mss-backend:/var/www/html
+      - ./.git:/var/www/html/.git
       # Host mounts untuk Linux VPS Monitoring, Docker & Backup Modules
       # 1. Docker socket untuk kontrol langsung / status Docker host
       - /var/run/docker.sock:/var/run/docker.sock
