@@ -38,23 +38,21 @@ class DeployController extends Controller
         }
 
         // 2. Deteksi direktori repositori Git (Docker container vs Host server)
-        $repoDir = '/var/www/html';
+        putenv('GIT_DISCOVERY_ACROSS_FILESYSTEM=1');
+        shell_exec("git config --global --add safe.directory '*' 2>&1");
+
+        $repoDir = '/var/www/project';
         if (!file_exists($repoDir . '/.git')) {
-            $parent = base_path('..');
-            if (file_exists($parent . '/.git')) {
-                $repoDir = $parent;
+            if (file_exists('/var/www/html/.git')) {
+                $repoDir = '/var/www/html';
+            } elseif (file_exists(base_path('../.git'))) {
+                $repoDir = base_path('..');
             } else {
                 $repoDir = base_path();
             }
         }
 
         $appDir = file_exists('/var/www/html/artisan') ? '/var/www/html' : base_path();
-
-        // 3. Mengatasi isu safe.directory di Linux/Docker
-        shell_exec("git config --global --add safe.directory \"$repoDir\"");
-        if ($appDir !== $repoDir) {
-            shell_exec("git config --global --add safe.directory \"$appDir\"");
-        }
 
         // 4. Tarik update terbaru dari GitHub
         $fetch = shell_exec("cd \"$repoDir\" && git fetch --all 2>&1");
