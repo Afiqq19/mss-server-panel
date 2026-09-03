@@ -86512,8 +86512,8 @@ return B.d.b3(r,s)},
 $S:540}
 A.avD.prototype={
 $1(a){var s=new A.hy($.as()),r=A.Q7().gvj()
-if(B.c.u(r,"localhost:3000")||B.c.u(r,"127.0.0.1:3000"))s.a="http://127.0.0.1:8000/api"
-else s.a=r+"/api"
+if(B.c.u(r,"localhost:")||B.c.u(r,"127.0.0.1:"))s.a="http://127.0.0.1:8000/api"
+else s.a="/api"
 return s},
 $S:541}
 A.ME.prototype={
