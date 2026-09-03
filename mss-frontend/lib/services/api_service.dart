@@ -20,15 +20,16 @@ class ApiService extends ChangeNotifier {
   void _initBaseUrl() {
     if (kIsWeb) {
       final origin = Uri.base.origin;
-      // Jika diuji di dev port 3000 pada localhost, arahkan ke backend lokal port 8000
-      if (origin.contains('localhost:3000') || origin.contains('127.0.0.1:3000')) {
+      // Jika dibuka di dev mode lokal (misal localhost:63125 pada Chrome dev)
+      if (origin.contains('localhost:') || origin.contains('127.0.0.1:')) {
         _baseUrl = 'http://127.0.0.1:8000/api';
       } else {
-        // Jika di domain publik (misal panel.xie.my.id) atau IP LAN (192.168.1.100), gunakan domain asal
-        _baseUrl = '$origin/api';
+        // Di production hosting (panel.xie.my.id), gunakan relative path '/api' yang di-proxy oleh Nginx
+        _baseUrl = '/api';
       }
     } else {
-      _baseUrl = 'http://127.0.0.1:8000/api';
+      // Fallback untuk aplikasi mobile/desktop APK
+      _baseUrl = 'https://panel.xie.my.id/api';
     }
   }
 
