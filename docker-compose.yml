@@ -13,12 +13,18 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./mss-backend:/var/www/html
-      # Host mounts for Linux VPS Monitoring & Backup Modules
-      # These paths are mapped into container so Laravel can read host hardware & backup files
+      # Host mounts untuk Linux VPS Monitoring, Docker & Backup Modules
+      # 1. Docker socket untuk kontrol langsung / status Docker host
+      - /var/run/docker.sock:/var/run/docker.sock
+      # 2. Host proc & sys agar PHP membaca metrik CPU/RAM & Suhu/Baterai host Toshiba
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
+      # 3. Direktori skrip backup otomatis host
+      - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/home/mss/backup-otomatis
+      - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/host/backup-scripts
+      # 4. Volume Nextcloud NAS untuk membaca berkas .sql
       - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/host/backup-server:ro
-      - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/host/backup-scripts:ro
+      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server:ro
     environment:
       APP_NAME: "${APP_NAME:-MSS-Server-Panel}"
       APP_ENV: "${APP_ENV:-local}"
@@ -35,15 +41,16 @@ services:
       DB_PASSWORD: "${DB_PASSWORD:-mss_secret_pass}"
       
       # Portainer API Settings
-      PORTAINER_URL: "${PORTAINER_URL:-http://localhost:9000}"
+      PORTAINER_URL: "${PORTAINER_URL:-https://192.168.1.100:9443}"
       PORTAINER_API_KEY: "${PORTAINER_API_KEY:-}"
-      PORTAINER_ENDPOINT_ID: "${PORTAINER_ENDPOINT_ID:-1}"
+      PORTAINER_ENDPOINT_ID: "${PORTAINER_ENDPOINT_ID:-3}"
+      PORTAINER_ENVIRONMENT_ID: "${PORTAINER_ENVIRONMENT_ID:-3}"
       
       # VPS Host Metrics & Backup Paths
       HOST_PROC_PATH: /host/proc
       HOST_SYS_PATH: /host/sys
       NEXTCLOUD_BACKUP_PATH: /host/backup-server
-      BACKUP_SCRIPT_PATH: /host/backup-scripts/jalankan-backup.sh
+      BACKUP_SCRIPT_PATH: /home/mss/backup-otomatis/jalankan-backup.sh
     depends_on:
       mss-db:
         condition: service_healthy
