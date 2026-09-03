@@ -23,9 +23,9 @@ services:
       # 3. Direktori skrip backup otomatis host
       - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/home/mss/backup-otomatis
       - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/host/backup-scripts
-      # 4. Volume Nextcloud NAS untuk membaca berkas .sql
-      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/host/backup-server:ro
-      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server:ro
+      # 4. Volume Nextcloud NAS untuk membaca dan menulis berkas .sql
+      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/host/backup-server
+      - ${NEXTCLOUD_HOST_BACKUP_DIR:-/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server}:/var/lib/docker/volumes/nas-mss_nextcloud_data/_data/data/mss/files/Backup-Server
     environment:
       APP_NAME: "${APP_NAME:-MSS-Server-Panel}"
       APP_ENV: "${APP_ENV:-local}"

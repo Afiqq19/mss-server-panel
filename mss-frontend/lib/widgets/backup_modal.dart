@@ -24,6 +24,7 @@ class _BackupModalState extends State<BackupModal> {
   late Future<BackupHistoryModel> _backupFuture;
   bool _isTriggering = false;
   String _selectedFilter = 'Semua';
+  List<String> _availableProjects = ['E-Aspira DPM'];
 
   @override
   void initState() {
@@ -32,11 +33,20 @@ class _BackupModalState extends State<BackupModal> {
   }
 
   void _loadBackups() {
-    _backupFuture = widget.apiService.fetchBackups();
+    _backupFuture = widget.apiService.fetchBackups().then((data) {
+      if (mounted) {
+        setState(() {
+          _availableProjects = data.projects;
+        });
+      }
+      return data;
+    });
   }
 
   Future<void> _triggerBackup() async {
-    String targetProject = 'all';
+    String selectedOption = 'all';
+    final customProjectController = TextEditingController();
+    bool isCustom = false;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -52,46 +62,80 @@ class _BackupModalState extends State<BackupModal> {
                 Text('Trigger Backup NAS', style: TextStyle(color: Colors.white, fontSize: 18)),
               ],
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Pilih target database proyek yang ingin di-backup ke volume Nextcloud NAS:',
-                  style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: targetProject,
-                  dropdownColor: const Color(0xFF0F172A),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Target Database Proyek',
-                    labelStyle: const TextStyle(color: Color(0xFF06B6D4)),
-                    filled: true,
-                    fillColor: const Color(0xFF0B1120),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF334155)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF334155)),
-                    ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Pilih proyek yang ada atau buat folder proyek baru di volume Nextcloud NAS:',
+                    style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'all', child: Text('🌐 Semua Proyek (All Databases)')),
-                    DropdownMenuItem(value: 'easpira', child: Text('🎓 E-Aspira DPM Polmed (db-easpira)')),
-                    DropdownMenuItem(value: 'wordpress', child: Text('📰 WordPress Website (web-database)')),
-                    DropdownMenuItem(value: 'nextcloud', child: Text('☁️ Nextcloud NAS (nextcloud_nas)')),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedOption,
+                    dropdownColor: const Color(0xFF0F172A),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Target Proyek',
+                      labelStyle: const TextStyle(color: Color(0xFF06B6D4)),
+                      filled: true,
+                      fillColor: const Color(0xFF0B1120),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF334155)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF334155)),
+                      ),
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: 'all', child: Text('🌐 Semua Proyek (All Folders)')),
+                      ..._availableProjects.map((p) => DropdownMenuItem(
+                        value: p,
+                        child: Text('📁 $p'),
+                      )),
+                      const DropdownMenuItem(
+                        value: '__custom__',
+                        child: Text('➕ Buat Folder / Proyek Baru...'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() {
+                          selectedOption = val;
+                          isCustom = (val == '__custom__');
+                        });
+                      }
+                    },
+                  ),
+                  if (isCustom) ...[
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: customProjectController,
+                      style: const TextStyle(color: Colors.white),
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Nama Folder Proyek Baru',
+                        hintText: 'misal: portofolio, web-klien, db-toko',
+                        hintStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        labelStyle: const TextStyle(color: Color(0xFF10B981)),
+                        filled: true,
+                        fillColor: const Color(0xFF0B1120),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Color(0xFF10B981)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Color(0xFF10B981)),
+                        ),
+                      ),
+                    ),
                   ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      setModalState(() => targetProject = val);
-                    }
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -103,7 +147,12 @@ class _BackupModalState extends State<BackupModal> {
                   backgroundColor: const Color(0xFF06B6D4),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                onPressed: () => Navigator.pop(ctx, true),
+                onPressed: () {
+                  if (isCustom && customProjectController.text.trim().isEmpty) {
+                    return;
+                  }
+                  Navigator.pop(ctx, true);
+                },
                 child: const Text('Jalankan Backup', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
             ],
@@ -114,9 +163,14 @@ class _BackupModalState extends State<BackupModal> {
 
     if (confirmed != true) return;
 
+    String finalProject = selectedOption;
+    if (selectedOption == '__custom__') {
+      finalProject = customProjectController.text.trim();
+    }
+
     setState(() => _isTriggering = true);
     try {
-      final msg = await widget.apiService.triggerBackup(project: targetProject);
+      final msg = await widget.apiService.triggerBackup(project: finalProject);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -277,20 +331,16 @@ class _BackupModalState extends State<BackupModal> {
           ),
           const SizedBox(height: 16),
 
-          // Project Filter Chips
+          // Project Filter Chips (Dinamis dari Folder Proyek yang Ada)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _buildFilterChip('Semua'),
-                const SizedBox(width: 8),
-                _buildFilterChip('E-Aspira DPM'),
-                const SizedBox(width: 8),
-                _buildFilterChip('WordPress'),
-                const SizedBox(width: 8),
-                _buildFilterChip('Nextcloud NAS'),
-                const SizedBox(width: 8),
-                _buildFilterChip('General DB'),
+                ..._availableProjects.map((proj) => Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: _buildFilterChip(proj),
+                )),
               ],
             ),
           ),

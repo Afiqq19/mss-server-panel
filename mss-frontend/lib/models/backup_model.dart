@@ -25,11 +25,13 @@ class BackupHistoryModel {
   final int totalBackups;
   final String? lastBackup;
   final List<BackupItemModel> files;
+  final List<String> projects;
 
   BackupHistoryModel({
     required this.totalBackups,
     this.lastBackup,
     required this.files,
+    this.projects = const ['E-Aspira DPM'],
   });
 
   factory BackupHistoryModel.fromJson(Map<String, dynamic> json) {
@@ -37,10 +39,17 @@ class BackupHistoryModel {
     List<BackupItemModel> parsedFiles =
         rawFiles.map((i) => BackupItemModel.fromJson(i)).toList();
 
+    var rawProjects = json['projects'] as List? ?? [];
+    List<String> parsedProjects = rawProjects.map((p) => p.toString()).toList();
+    if (parsedProjects.isEmpty) {
+      parsedProjects = ['E-Aspira DPM'];
+    }
+
     return BackupHistoryModel(
       totalBackups: (json['total_backups'] as num?)?.toInt() ?? parsedFiles.length,
       lastBackup: json['last_backup'],
       files: parsedFiles,
+      projects: parsedProjects,
     );
   }
 }
