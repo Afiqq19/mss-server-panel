@@ -63,6 +63,9 @@ class DeployController extends Controller
         $migrate = shell_exec("cd \"$appDir\" && php artisan migrate --force 2>&1");
         $seed = shell_exec("cd \"$appDir\" && php artisan db:seed --force 2>&1");
         $optimize = shell_exec("cd \"$appDir\" && php artisan optimize:clear 2>&1");
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
 
         // 6. Sinkronkan file web terbaru ke mss-frontend/build/web agar Nginx langsung membacanya tanpa perlu scp manual!
         $frontendBuildDir = $repoDir . '/mss-frontend/build/web';
