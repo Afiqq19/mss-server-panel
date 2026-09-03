@@ -40,6 +40,7 @@ class DeployController extends Controller
         // 2. Deteksi direktori repositori Git (Docker container vs Host server)
         putenv('GIT_DISCOVERY_ACROSS_FILESYSTEM=1');
         shell_exec("git config --global --add safe.directory '*' 2>&1");
+        shell_exec("git config --system --add safe.directory '*' 2>&1");
 
         $repoDir = '/var/www/project';
         if (!file_exists($repoDir . '/.git')) {
@@ -54,9 +55,9 @@ class DeployController extends Controller
 
         $appDir = file_exists('/var/www/html/artisan') ? '/var/www/html' : base_path();
 
-        // 4. Tarik update terbaru dari GitHub
-        $fetch = shell_exec("cd \"$repoDir\" && git fetch --all 2>&1");
-        $gitOutput = shell_exec("cd \"$repoDir\" && git reset --hard origin/main 2>&1");
+        // 4. Tarik update terbaru dari GitHub (flag -c safe.directory=* mengatasi dubious ownership secara permanen)
+        $fetch = shell_exec("git -c safe.directory=* -C \"$repoDir\" fetch --all 2>&1");
+        $gitOutput = shell_exec("git -c safe.directory=* -C \"$repoDir\" reset --hard origin/main 2>&1");
 
         // 5. Jalankan migrasi dan pembersihan cache Laravel
         $migrate = shell_exec("cd \"$appDir\" && php artisan migrate --force 2>&1");
