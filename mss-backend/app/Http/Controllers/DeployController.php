@@ -16,7 +16,7 @@ class DeployController extends Controller
         $secretKey = env('DEPLOY_SECRET', 'kunci-rahasia-mepal-2026');
         $providedKey = $request->query('key', $request->input('key'));
 
-        $wantsJson = $request->wantsJson() || $request->is('api/*');
+        $wantsJson = ($request->wantsJson() || $request->isJson()) && !$request->acceptsHtml();
 
         if ($providedKey !== $secretKey) {
             if ($wantsJson) {
