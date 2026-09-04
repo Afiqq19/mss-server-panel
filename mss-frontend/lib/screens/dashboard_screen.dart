@@ -457,7 +457,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           const SizedBox(height: 32),
 
-          // 2. Docker Containers Grid (Bab 7.2)
+          // 2. App Launcher Grid (Bab 7.3)
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.rocket_launch,
+                    size: 20, color: Color(0xFF8B5CF6)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'APP LAUNCHER',
+                style: TextStyle(
+                  fontSize: 15,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_launchers.length} SHORTCUTS',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFCBD5E1),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              int crossAxisCount = 4;
+              if (constraints.maxWidth < 650) {
+                crossAxisCount = 1;
+              } else if (constraints.maxWidth < 1000) {
+                crossAxisCount = 2;
+              } else if (constraints.maxWidth < 1300) {
+                crossAxisCount = 3;
+              }
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  mainAxisExtent: 90,
+                ),
+                itemCount: _launchers.length,
+                itemBuilder: (context, index) {
+                  return AppLauncherCard(launcher: _launchers[index]);
+                },
+              );
+            },
+          ),
+
+          const SizedBox(height: 36),
+
+          // 3. Docker Containers Grid (Bab 7.2)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -537,79 +610,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-
-          const SizedBox(height: 36),
-
-          // 3. App Launcher Grid (Bab 7.3)
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.rocket_launch,
-                    size: 20, color: Color(0xFF8B5CF6)),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'APP LAUNCHER',
-                style: TextStyle(
-                  fontSize: 15,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_launchers.length} SHORTCUTS',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFCBD5E1),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          LayoutBuilder(
-            builder: (context, constraints) {
-              int crossAxisCount = 4;
-              if (constraints.maxWidth < 650) {
-                crossAxisCount = 1;
-              } else if (constraints.maxWidth < 1000) {
-                crossAxisCount = 2;
-              } else if (constraints.maxWidth < 1300) {
-                crossAxisCount = 3;
-              }
-
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  mainAxisExtent: 90,
-                ),
-                itemCount: _launchers.length,
-                itemBuilder: (context, index) {
-                  return AppLauncherCard(launcher: _launchers[index]);
-                },
-              );
-            },
-          ),
 
           const SizedBox(height: 40),
         ],

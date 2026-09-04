@@ -290,16 +290,6 @@ class HostMonitorCard extends StatelessWidget {
     
     if (spots.isEmpty) {
       spots = [const FlSpot(0, 10), const FlSpot(1, 15)];
-      minVal = 0;
-      maxVal = 100;
-    }
-
-    // Dynamic scale to make small fluctuations visible
-    double chartMinY = (minVal - 5).clamp(0.0, 100.0);
-    double chartMaxY = (maxVal + 5).clamp(0.0, 100.0);
-    if (chartMaxY - chartMinY < 10) {
-      chartMinY = (chartMinY - 5).clamp(0.0, 100.0);
-      chartMaxY = (chartMaxY + 5).clamp(0.0, 100.0);
     }
 
     return Container(
@@ -358,8 +348,6 @@ class HostMonitorCard extends StatelessWidget {
                 borderData: FlBorderData(show: false),
                 minX: 0,
                 maxX: (cpuHistory.length - 1).toDouble().clamp(1.0, 30.0),
-                minY: chartMinY,
-                maxY: chartMaxY,
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
