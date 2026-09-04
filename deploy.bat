@@ -6,7 +6,7 @@ echo.
 
 echo [1/3] Membangun Ulang Flutter Web (Release Mode)...
 cd mss-frontend
-call flutter build web --release --no-tree-shake-icons
+call flutter build web --release
 if %errorlevel% neq 0 (
     echo Gagal melakukan build Flutter! Pastikan Anda berada di direktori yang benar.
     pause
