@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         $launchers = [
             [
                 'name' => 'Portainer CE',
-                'url' => 'https://192.168.1.100:9443',
+                'url' => 'https://portainer.xie.my.id',
                 'icon' => 'docker',
                 'category' => 'Infrastructure',
                 'description' => 'Docker Container Management UI',
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Nextcloud NAS',
-                'url' => 'http://localhost:8080',
+                'url' => 'https://nas.xie.my.id',
                 'icon' => 'cloud',
                 'category' => 'Storage',
                 'description' => 'Private Cloud & NAS Server',
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'E-Aspira DPM',
-                'url' => 'http://localhost:8000',
+                'url' => 'https://easpira-dpm.xie.my.id',
                 'icon' => 'school',
                 'category' => 'Application',
                 'description' => 'Sistem Aspirasi Mahasiswa DPM Polmed',
@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'phpMyAdmin',
-                'url' => 'http://localhost:8081',
+                'url' => 'https://db.xie.my.id',
                 'icon' => 'storage',
                 'category' => 'Database',
                 'description' => 'MySQL Web Administration Interface',
