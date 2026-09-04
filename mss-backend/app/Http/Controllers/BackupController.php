@@ -99,8 +99,7 @@ class BackupController extends Controller
                 
                 foreach ($rawFiles as $rf) {
                     $formattedTime = Carbon::createFromTimestamp($rf['time'])->format('Y-m-d H:i:s');
-                    $sizeMb = $rf['bytes'] > 0 ? round($rf['bytes'] / (1024 * 1024), 2) : 14.8;
-                    if ($sizeMb < 0.1) $sizeMb = 14.8;
+                    $sizeMb = $rf['bytes'] > 0 ? round($rf['bytes'] / (1024 * 1024), 3) : 0;
                     $filename = basename($rf['path']);
                     
                     $project = $this->detectProjectName($rf['path'], '/var/www/html/data/mss/files/Backup-Server');
@@ -146,8 +145,7 @@ class BackupController extends Controller
                         $fileTime = filemtime($filePath);
                         $formattedTime = Carbon::createFromTimestamp($fileTime)->format('Y-m-d H:i:s');
                         $bytes = filesize($filePath);
-                        $sizeMb = $bytes > 0 ? round($bytes / (1024 * 1024), 2) : 14.8;
-                        if ($sizeMb < 0.1) $sizeMb = 14.8;
+                        $sizeMb = $bytes > 0 ? round($bytes / (1024 * 1024), 3) : 0;
                         $filename = basename($filePath);
 
                         $project = $this->detectProjectName($filePath, $storage);
