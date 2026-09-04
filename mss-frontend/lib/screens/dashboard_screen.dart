@@ -345,7 +345,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: const BoxDecoration(
-                    color: Color(0xFF0F172A),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [Color(0xFF0B1120), Color(0xFF0F172A)],
+                    ),
                     border: Border(
                       bottom: BorderSide(color: Color(0xFF1E293B), width: 1.5),
                     ),
@@ -479,8 +483,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   color: const Color(0xFF10B981),
                                   backgroundColor: const Color(0xFF1E293B),
                                   child: SingleChildScrollView(
-                                    padding: const EdgeInsets.all(32.0),
-                                    child: _buildMainContent(),
+                                    padding: EdgeInsets.all(MediaQuery.of(context).size.width < 768 ? 16.0 : 32.0),
+                                    child: _buildMainContent(MediaQuery.of(context).size.width < 768),
                                   ),
                                 ),
                       // 1: Containers
@@ -504,7 +508,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildMainContent(bool isMobile) {
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -516,7 +520,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               serverTime: _currentTimeString,
             ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: isMobile ? 24 : 32),
 
           // 2. App Launcher Grid (Bab 7.3)
           Row(
@@ -531,42 +535,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     size: 20, color: Color(0xFF8B5CF6)),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'APP LAUNCHER',
-                style: TextStyle(
-                  fontSize: 15,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Expanded(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 10,
+                  runSpacing: 6,
+                  children: [
+                    const Text(
+                      'APP LAUNCHER',
+                      style: TextStyle(
+                        fontSize: 15,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_launchers.length} SHORTCUTS',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFCBD5E1),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_launchers.length} SHORTCUTS',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFCBD5E1),
-                  ),
-                ),
-              ),
-              const Spacer(),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () {
                   setState(() => _currentRoute = '/settings');
                   _saveRoute('/settings');
                 },
                 icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                label: const Text('Tambah App', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
+                label: Text(isMobile ? 'Tambah' : 'Tambah App', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8B5CF6),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 14, vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -607,47 +619,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // 3. Docker Containers Grid (Bab 7.2)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.view_in_ar,
-                        size: 20, color: Color(0xFF10B981)),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'DOCKER CONTAINERS',
-                    style: TextStyle(
-                      fontSize: 15,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${_containers.where((c) => c.isRunning).length} / ${_containers.length} RUNNING',
-                      style: const TextStyle(
-                        fontSize: 11,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.view_in_ar,
+                    size: 20, color: Color(0xFF10B981)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 10,
+                  runSpacing: 6,
+                  children: [
+                    const Text(
+                      'DOCKER CONTAINERS',
+                      style: TextStyle(
+                        fontSize: 15,
+                        letterSpacing: 1.2,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF10B981),
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_containers.where((c) => c.isRunning).length} / ${_containers.length} RUNNING',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

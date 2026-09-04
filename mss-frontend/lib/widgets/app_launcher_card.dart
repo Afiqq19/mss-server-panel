@@ -79,21 +79,28 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0F172A),
+                _isHovered ? color.withOpacity(0.05) : const Color(0xFF131C31),
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _isHovered
-                  ? color.withOpacity(0.8)
+                  ? color.withOpacity(0.6)
                   : const Color(0xFF1E293B),
               width: _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: _isHovered
-                    ? color.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.2),
-                blurRadius: _isHovered ? 16 : 8,
-                offset: const Offset(0, 4),
+                    ? color.withOpacity(0.25)
+                    : Colors.black.withOpacity(0.3),
+                blurRadius: _isHovered ? 20 : 10,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
@@ -104,9 +111,16 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      color.withOpacity(0.2),
+                      color.withOpacity(0.05),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withOpacity(0.3)),
+                  border: Border.all(color: color.withOpacity(0.4)),
                 ),
                 child: Icon(
                   _getIconData(widget.launcher.icon),

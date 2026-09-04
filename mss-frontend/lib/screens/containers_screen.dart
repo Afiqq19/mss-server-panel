@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/container_model.dart';
 import '../services/api_service.dart';
+import '../widgets/container_card.dart';
 
 class ContainersScreen extends StatefulWidget {
   const ContainersScreen({super.key});
@@ -140,7 +141,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
     final filtered = _filteredContainers;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -233,11 +234,14 @@ class _ContainersScreenState extends State<ContainersScreen> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    mainAxisExtent: 200,
+                    mainAxisExtent: 165,
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    return _buildContainerCard(filtered[index]);
+                    return ContainerCard(
+                      container: filtered[index],
+                      onAction: _handleAction,
+                    );
                   },
                 );
               },
@@ -321,125 +325,6 @@ class _ContainersScreenState extends State<ContainersScreen> {
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildContainerCard(ContainerModel container) {
-    final statusColor = container.isRunning ? const Color(0xFF10B981) : const Color(0xFFF43F5E);
-    final statusLabel = container.isRunning ? 'RUNNING' : 'EXITED';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1E293B)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Name + Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  container.name,
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: statusColor.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, size: 6, color: statusColor),
-                    const SizedBox(width: 4),
-                    Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Image
-          Text(container.image, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 6),
-          // Ports & ID
-          if (container.ports.isNotEmpty)
-            Row(
-              children: [
-                const Icon(Icons.lan, size: 14, color: Color(0xFF64748B)),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(container.ports, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11), overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.tag, size: 14, color: Color(0xFF64748B)),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text('#${container.id.substring(0, container.id.length > 12 ? 12 : container.id.length)}',
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'monospace')),
-              ),
-            ],
-          ),
-          const Spacer(),
-          // Action Buttons
-          Row(
-            children: [
-              if (!container.isRunning)
-                Expanded(
-                  child: _buildActionButton('Start', Icons.play_arrow, const Color(0xFF10B981), () => _handleAction(container.id, 'start')),
-                ),
-              if (container.isRunning) ...[
-                Expanded(
-                  child: _buildActionButton('Restart', Icons.refresh, const Color(0xFF3B82F6), () => _handleAction(container.id, 'restart')),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildActionButton('Stop', Icons.stop, const Color(0xFFF43F5E), () => _handleAction(container.id, 'stop')),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ),
       ),
     );
   }

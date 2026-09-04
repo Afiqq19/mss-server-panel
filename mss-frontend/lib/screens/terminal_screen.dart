@@ -50,20 +50,27 @@ class _TerminalScreenState extends State<TerminalScreen> {
                 bottom: BorderSide(color: Color(0xFF1E293B), width: 1.5),
               ),
             ),
-            child: Row(
-              children: const [
-                Icon(Icons.terminal, color: Color(0xFF10B981), size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Web Terminal (Interactive PTY)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 8,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.terminal, color: Color(0xFF10B981), size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Web Terminal (Interactive PTY)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
-                Spacer(),
-                Text(
+                const Text(
                   'Status: Connected via ttyd',
                   style: TextStyle(
                     color: Color(0xFF10B981),

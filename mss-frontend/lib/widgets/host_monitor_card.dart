@@ -20,10 +20,23 @@ class HostMonitorCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        gradient: const LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            Color(0xFF131B2F),
+            Color(0xFF0B1121),
+          ],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF1E293B)),
         boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF06B6D4).withOpacity(0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+            spreadRadius: 2,
+          ),
           BoxShadow(
             color: Colors.black.withOpacity(0.4),
             blurRadius: 20,

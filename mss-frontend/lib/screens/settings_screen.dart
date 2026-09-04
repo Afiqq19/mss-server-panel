@@ -474,7 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 16 : 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -521,7 +521,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               // Kolom Kiri
               SizedBox(
-                width: 480,
+                width: MediaQuery.of(context).size.width < 550 ? MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width < 600 ? 32 : 64) : 480,
                 child: Column(
                   children: [
                     _buildAdminAccountCard(),
@@ -533,7 +533,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               
               // Kolom Kanan
               SizedBox(
-                width: 480,
+                width: MediaQuery.of(context).size.width < 550 ? MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width < 600 ? 32 : 64) : 480,
                 child: Column(
                   children: [
                     _buildSystemActionsCard(),

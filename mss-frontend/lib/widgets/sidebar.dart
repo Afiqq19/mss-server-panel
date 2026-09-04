@@ -229,13 +229,16 @@ class Sidebar extends StatelessWidget {
             }
           },
           borderRadius: BorderRadius.circular(12),
+          hoverColor: const Color(0xFF1E293B).withOpacity(0.8),
+          highlightColor: const Color(0xFF1E293B).withOpacity(0.4),
+          splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFF06B6D4).withOpacity(0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? const Color(0xFF06B6D4).withOpacity(0.3) : Colors.transparent,
+                color: isSelected ? const Color(0xFF06B6D4).withOpacity(0.4) : Colors.transparent,
               ),
             ),
             child: Row(

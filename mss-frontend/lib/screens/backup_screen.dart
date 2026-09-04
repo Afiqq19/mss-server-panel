@@ -171,7 +171,7 @@ class _BackupScreenState extends State<BackupScreen> {
     return RefreshIndicator(
       onRefresh: _loadBackups,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32.0),
+        padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 16.0 : 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -346,13 +346,20 @@ class _BackupScreenState extends State<BackupScreen> {
               child: const Icon(Icons.source, size: 20, color: Color(0xFF8B5CF6)),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'PROYEK DATABASE',
-              style: TextStyle(
-                fontSize: 15,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            const Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'PROYEK DATABASE',
+                    style: TextStyle(
+                      fontSize: 15,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -428,13 +435,20 @@ class _BackupScreenState extends State<BackupScreen> {
               child: const Icon(Icons.table_chart, size: 20, color: Color(0xFF10B981)),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'RIWAYAT FILE NEXTCLOUD NAS',
-              style: TextStyle(
-                fontSize: 15,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            const Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'RIWAYAT FILE NEXTCLOUD NAS',
+                    style: TextStyle(
+                      fontSize: 15,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

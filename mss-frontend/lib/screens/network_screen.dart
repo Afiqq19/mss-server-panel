@@ -84,7 +84,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
     return RefreshIndicator(
       onRefresh: _loadNetworkInfo,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(MediaQuery.of(context).size.width < 600 ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -207,9 +207,16 @@ class _NetworkScreenState extends State<NetworkScreen> {
           child: Icon(icon, size: 20, color: color),
         ),
         const SizedBox(width: 12),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 15, letterSpacing: 1.2, fontWeight: FontWeight.bold, color: Colors.white),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 15, letterSpacing: 1.2, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ],
+          ),
         ),
       ],
     );
