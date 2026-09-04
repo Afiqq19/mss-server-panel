@@ -6,6 +6,7 @@ import '../models/backup_model.dart';
 import '../models/container_model.dart';
 import '../models/host_stats_model.dart';
 import '../models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService extends ChangeNotifier {
   late String _baseUrl;
@@ -15,6 +16,19 @@ class ApiService extends ChangeNotifier {
 
   ApiService() {
     _initBaseUrl();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('mss_token');
+    if (savedToken != null) {
+      _token = savedToken;
+      _isAuthenticated = true;
+      // Ideally we would fetch user details here using token, 
+      // but for now we just mark as authenticated to prevent logout on reload
+      notifyListeners();
+    }
   }
 
   void _initBaseUrl() {
@@ -76,6 +90,10 @@ class ApiService extends ChangeNotifier {
         _token = data['data']['token'];
         _user = UserModel.fromJson(data['data']['user']);
         _isAuthenticated = true;
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('mss_token', _token!);
+        
         notifyListeners();
         return true;
       } else {
@@ -98,6 +116,10 @@ class ApiService extends ChangeNotifier {
     _token = null;
     _user = null;
     _isAuthenticated = false;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('mss_token');
+    
     notifyListeners();
   }
 

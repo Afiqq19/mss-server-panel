@@ -272,6 +272,43 @@ class BackupController extends Controller
     }
 
     /**
+     * Copy file from local path to container path using Docker API (PUT /containers/{id}/archive)
+     */
+    protected function copyFileToContainer(string $container, string $localPath, string $remoteDir): bool
+    {
+        if (!file_exists('/var/run/docker.sock') || !file_exists($localPath)) {
+            return false;
+        }
+
+        try {
+            $filename = basename($localPath);
+            $tarPath = sys_get_temp_dir() . '/' . uniqid('bak_') . '.tar';
+            $phar = new \PharData($tarPath);
+            $phar->addFile($localPath, $filename);
+            
+            $tarContent = file_get_contents($tarPath);
+            @unlink($tarPath);
+
+            $ch = curl_init("http://localhost/containers/{$container}/archive?path=" . urlencode($remoteDir));
+            curl_setopt_array($ch, [
+                CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+                CURLOPT_CUSTOMREQUEST => 'PUT',
+                CURLOPT_POSTFIELDS => $tarContent,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/x-tar'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 60,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            return $httpCode == 200;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Mencari nama container yang sedang aktif berdasarkan kata kunci
      */
     protected function findRunningContainer(string $keyword): ?string
@@ -456,10 +493,10 @@ class BackupController extends Controller
                     @file_put_contents($filePath, $fallbackContent);
                 }
 
-                // Note: File is already written to $filePath. 
-                // We rely on Nextcloud and mss-backend sharing the same underlying volume or directory.
-                // If they don't, transferring large files via exec socket requires stream piping, which is complex.
-                // For now, we trust the shared volume mount.
+                if ($nextcloudContainer && file_exists($filePath)) {
+                    $ncDestDir = "/var/www/html/data/mss/files/Backup-Server/{$projFolder}";
+                    $this->copyFileToContainer($nextcloudContainer, $filePath, $ncDestDir);
+                }
 
                 $created[] = "{$projFolder}/{$filename}";
             }

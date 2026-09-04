@@ -88,23 +88,23 @@ class Sidebar extends StatelessWidget {
               children: [
                 _buildMenuItem(
                   title: 'Dashboard',
-                  icon: Icons.dashboard_rounded,
+                  icon: Icons.dashboard,
                   route: '/dashboard',
                 ),
                 _buildMenuItem(
                   title: 'Containers',
-                  icon: Icons.data_object_rounded,
+                  icon: Icons.data_object,
                   route: '/containers',
                 ),
                 _buildMenuItem(
                   title: 'Storage & Backup',
-                  icon: Icons.cloud_sync_rounded,
+                  icon: Icons.cloud_sync,
                   route: '/backup',
                   badge: 'Auto',
                 ),
                 _buildMenuItem(
                   title: 'Network',
-                  icon: Icons.router_rounded,
+                  icon: Icons.router,
                   route: '/network',
                 ),
                 const SizedBox(height: 24),
@@ -122,7 +122,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 _buildMenuItem(
                   title: 'Settings',
-                  icon: Icons.settings_rounded,
+                  icon: Icons.settings,
                   route: '/settings',
                 ),
               ],
@@ -142,7 +142,7 @@ class Sidebar extends StatelessWidget {
                 const CircleAvatar(
                   radius: 18,
                   backgroundColor: Color(0xFF1E293B),
-                  child: Icon(Icons.person_rounded, color: Color(0xFF94A3B8), size: 20),
+                  child: Icon(Icons.person, color: Color(0xFF94A3B8), size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -168,7 +168,7 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout_rounded, color: Color(0xFF64748B), size: 20),
+                  icon: const Icon(Icons.logout, color: Color(0xFF64748B), size: 20),
                   onPressed: () {},
                 ),
               ],
