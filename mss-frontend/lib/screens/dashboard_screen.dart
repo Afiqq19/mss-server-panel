@@ -24,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _clockTimer;
   String _currentTimeString = '--:--:--';
   String _currentRoute = '/dashboard';
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   HostStatsModel? _hostStats;
   List<ContainerModel> _containers = [];
@@ -182,29 +183,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final api = context.watch<ApiService>();
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFF0A0F1D),
+      drawer: isDesktop
+          ? null
+          : Drawer(
+              backgroundColor: const Color(0xFF0F172A),
+              surfaceTintColor: Colors.transparent,
+              child: Sidebar(
+                currentRoute: _currentRoute,
+                onNavigate: (route) {
+                  if (route == '/dashboard' || route == '/backup') {
+                    setState(() => _currentRoute = route);
+                    Navigator.pop(context); // Close drawer
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Menu $route masih dalam tahap pengembangan (Coming Soon)!'),
+                        backgroundColor: const Color(0xFF3B82F6),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
       body: Row(
         children: [
-          // Sidebar Samping Kiri
-          Sidebar(
-            currentRoute: _currentRoute,
-            onNavigate: (route) {
-              if (route == '/dashboard' || route == '/backup') {
-                setState(() => _currentRoute = route);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Menu $route masih dalam tahap pengembangan (Coming Soon)!'),
-                    backgroundColor: const Color(0xFF3B82F6),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                );
-              }
-            },
-          ),
+          // Sidebar Samping Kiri (Desktop)
+          if (isDesktop)
+            Sidebar(
+              currentRoute: _currentRoute,
+              onNavigate: (route) {
+                if (route == '/dashboard' || route == '/backup') {
+                  setState(() => _currentRoute = route);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Menu $route masih dalam tahap pengembangan (Coming Soon)!'),
+                      backgroundColor: const Color(0xFF3B82F6),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                }
+              },
+            ),
           
           // Konten Utama Kanan
           Expanded(
@@ -226,11 +254,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Breadcrumb or Title
                       Row(
                         children: [
+                          if (!isDesktop) ...[
+                            IconButton(
+                              icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                              onPressed: () {
+                                _scaffoldKey.currentState?.openDrawer();
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           Text(
                             _currentRoute == '/backup' ? 'Storage & Backup' : 'Dashboard',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: isDesktop ? 18 : 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
