@@ -35,10 +35,12 @@ class HostMonitorCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Bar: Host Info & Live Clock
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 700;
+
+              final hostInfo = Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -67,13 +69,17 @@ class HostMonitorCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'Toshiba Satellite Linux VPS',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          Flexible(
+                            child: Text(
+                              'Toshiba Satellite Linux VPS',
+                              style: TextStyle(
+                                fontSize: isNarrow ? 14 : 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -108,9 +114,11 @@ class HostMonitorCard extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
-              // Server Clock & Battery Widget (Bab 7, 9.A)
-              Row(
+              );
+
+              final badges = Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   // Battery Badge
                   Container(
@@ -121,6 +129,7 @@ class HostMonitorCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           stats.isCharging
@@ -143,7 +152,6 @@ class HostMonitorCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
                   // Temperature Badge
                   if (stats.cpuTemperature != null)
                     Container(
@@ -154,6 +162,7 @@ class HostMonitorCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
                             Icons.thermostat,
@@ -172,7 +181,6 @@ class HostMonitorCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                  const SizedBox(width: 12),
                   // Live Server Time
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -190,6 +198,7 @@ class HostMonitorCard extends StatelessWidget {
                       ),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.schedule,
                             size: 16, color: Color(0xFF06B6D4)),
@@ -207,8 +216,27 @@ class HostMonitorCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    hostInfo,
+                    const SizedBox(height: 12),
+                    badges,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: hostInfo),
+                  badges,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 24),

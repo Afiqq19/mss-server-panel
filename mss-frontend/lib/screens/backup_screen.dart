@@ -219,36 +219,53 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Widget _buildOverviewCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 700;
+        final cards = [
+          _buildStatCard(
             title: 'TOTAL BACKUP',
             value: '${_backupData!.totalBackups} File',
             icon: Icons.folder_zip,
             color: const Color(0xFF3B82F6),
           ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: _buildStatCard(
+          _buildStatCard(
             title: 'BACKUP TERAKHIR',
             value: _backupData!.lastBackup ?? 'Belum ada',
             icon: Icons.history,
             color: const Color(0xFF10B981),
             isDate: true,
           ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: _buildStatCard(
+          _buildStatCard(
             title: 'TOTAL PROYEK',
             value: '${_backupData!.projects.length} Proyek',
             icon: Icons.layers,
             color: const Color(0xFF8B5CF6),
           ),
-        ),
-      ],
+        ];
+
+        if (isNarrow) {
+          return Column(
+            children: cards
+                .map((c) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: c,
+                    ))
+                .toList(),
+          );
+        }
+
+        return Row(
+          children: cards
+              .map((c) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: c,
+                    ),
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 
@@ -432,69 +449,69 @@ class _BackupScreenState extends State<BackupScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: DataTable(
-              headingRowColor: WidgetStateProperty.all(const Color(0xFF1E293B).withOpacity(0.8)),
-              dataRowMinHeight: 60,
-              dataRowMaxHeight: 60,
-              columns: const [
-                DataColumn(label: Text('NAMA FILE', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('PROYEK', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('UKURAN', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('TANGGAL BACKUP', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('STATUS', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
-              ],
-              rows: _backupData!.files.map((file) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      Row(
-                        children: [
-                          const Icon(Icons.dataset, color: Color(0xFF3B82F6), size: 20),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: Text(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(const Color(0xFF1E293B).withOpacity(0.8)),
+                dataRowMinHeight: 60,
+                dataRowMaxHeight: 60,
+                columns: const [
+                  DataColumn(label: Text('NAMA FILE', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('PROYEK', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('UKURAN', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('TANGGAL BACKUP', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('STATUS', style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.bold))),
+                ],
+                rows: _backupData!.files.map((file) {
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Row(
+                          children: [
+                            const Icon(Icons.dataset, color: Color(0xFF3B82F6), size: 20),
+                            const SizedBox(width: 12),
+                            Text(
                               file.filename,
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF334155).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          file.project,
-                          style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12, fontWeight: FontWeight.bold),
+                          ],
                         ),
                       ),
-                    ),
-                    DataCell(Text('${file.sizeMb.toStringAsFixed(2)} MB', style: const TextStyle(color: Color(0xFF94A3B8)))),
-                    DataCell(Text(file.createdAt, style: const TextStyle(color: Color(0xFF94A3B8)))),
-                    DataCell(
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                            ),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF334155).withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          const SizedBox(width: 8),
-                          const Text('Tersimpan di NAS', style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w600)),
-                        ],
+                          child: Text(
+                            file.project,
+                            style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }).toList(),
+                      DataCell(Text('${file.sizeMb.toStringAsFixed(2)} MB', style: const TextStyle(color: Color(0xFF94A3B8)))),
+                      DataCell(Text(file.createdAt, style: const TextStyle(color: Color(0xFF94A3B8)))),
+                      DataCell(
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Tersimpan di NAS', style: TextStyle(color: Color(0xFF10B981), fontSize: 13, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ),

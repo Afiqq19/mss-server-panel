@@ -10,7 +10,10 @@ import '../widgets/backup_modal.dart';
 import '../widgets/container_card.dart';
 import '../widgets/host_monitor_card.dart';
 import '../widgets/sidebar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'backup_screen.dart';
+import 'containers_screen.dart';
+import 'network_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -38,6 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSavedRoute();
     _updateClock();
     _clockTimer =
         Timer.periodic(const Duration(seconds: 1), (_) => _updateClock());
@@ -50,6 +54,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _refreshDataQuietly();
       }
     });
+  }
+
+  Future<void> _loadSavedRoute() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedRoute = prefs.getString('mss_last_route');
+    if (savedRoute != null && ['/dashboard', '/backup', '/containers', '/network'].contains(savedRoute)) {
+      if (mounted) {
+        setState(() {
+          _currentRoute = savedRoute;
+        });
+      }
+    }
+  }
+
+  Future<void> _saveRoute(String route) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('mss_last_route', route);
   }
 
   @override
@@ -196,8 +217,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Sidebar(
                 currentRoute: _currentRoute,
                 onNavigate: (route) {
-                  if (route == '/dashboard' || route == '/backup') {
+                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network') {
                     setState(() => _currentRoute = route);
+                    _saveRoute(route);
                     Navigator.pop(context); // Close drawer
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -219,8 +241,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Sidebar(
               currentRoute: _currentRoute,
               onNavigate: (route) {
-                if (route == '/dashboard' || route == '/backup') {
+                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network') {
                   setState(() => _currentRoute = route);
+                  _saveRoute(route);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -264,7 +287,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(width: 8),
                           ],
                           Text(
-                            _currentRoute == '/backup' ? 'Storage & Backup' : 'Dashboard',
+                            _currentRoute == '/backup'
+                                ? 'Storage & Backup'
+                                : _currentRoute == '/containers'
+                                    ? 'Docker Containers'
+                                    : _currentRoute == '/network'
+                                        ? 'Network Monitoring'
+                                        : 'Dashboard',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: isDesktop ? 18 : 16,
@@ -301,6 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             onPressed: () {
                               setState(() => _currentRoute = '/backup');
+                              _saveRoute('/backup');
                             },
                             icon: const Icon(Icons.backup, size: 18),
                             label: const Text(
@@ -334,12 +364,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 // Scrollable Content
                 Expanded(
-                  child: _currentRoute == '/backup' 
+                  child: _currentRoute == '/backup'
                       ? const BackupScreen()
-                      : _isLoadingInitial
-                          ? const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)))
-                          : _errorMessage != null
-                              ? Center(
+                      : _currentRoute == '/containers'
+                          ? const ContainersScreen()
+                          : _currentRoute == '/network'
+                              ? const NetworkScreen()
+                              : _isLoadingInitial
+                                  ? const Center(
+                                      child: CircularProgressIndicator(color: Color(0xFF10B981)))
+                                  : _errorMessage != null
+                                      ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DeployController;
 use App\Http\Controllers\HostStatsController;
+use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PortainerController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Nextcloud NAS SQL Backup Module (Bab 9.B)
     Route::get('/backups', [BackupController::class, 'index']);
     Route::post('/backups/run', [BackupController::class, 'run']);
+
+    // Network Monitoring
+    Route::get('/network-info', [NetworkController::class, 'index']);
 
     // App Launcher Shortcuts (Bab 4, 7)
     Route::apiResource('app-launchers', AppLauncherController::class);

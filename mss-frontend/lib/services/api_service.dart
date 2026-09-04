@@ -238,4 +238,23 @@ class ApiService extends ChangeNotifier {
       throw Exception(data['message'] ?? 'Gagal memicu backup');
     }
   }
+
+  // =================================================================
+  // NETWORK MONITORING
+  // =================================================================
+  Future<Map<String, dynamic>> fetchNetworkInfo() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/network-info'), headers: _headers)
+          .timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        return data['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('fetchNetworkInfo error: $e');
+    }
+    return {};
+  }
 }
