@@ -10,6 +10,7 @@ import '../widgets/backup_modal.dart';
 import '../widgets/container_card.dart';
 import '../widgets/host_monitor_card.dart';
 import '../widgets/sidebar.dart';
+import 'backup_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,6 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _periodicTimer;
   Timer? _clockTimer;
   String _currentTimeString = '--:--:--';
+  String _currentRoute = '/dashboard';
 
   HostStatsModel? _hostStats;
   List<ContainerModel> _containers = [];
@@ -187,9 +189,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // Sidebar Samping Kiri
           Sidebar(
-            currentRoute: '/dashboard',
+            currentRoute: _currentRoute,
             onNavigate: (route) {
-              if (route != '/dashboard') {
+              if (route == '/dashboard' || route == '/backup') {
+                setState(() => _currentRoute = route);
+              } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Menu $route masih dalam tahap pengembangan (Coming Soon)!'),
@@ -222,9 +226,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Breadcrumb or Title
                       Row(
                         children: [
-                          const Text(
-                            'Dashboard',
-                            style: TextStyle(
+                          Text(
+                            _currentRoute == '/backup' ? 'Storage & Backup' : 'Dashboard',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -258,7 +262,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            onPressed: () => BackupModal.show(context, api),
+                            onPressed: () {
+                              setState(() => _currentRoute = '/backup');
+                            },
                             icon: const Icon(Icons.backup_rounded, size: 18),
                             label: const Text(
                               'Backup NAS',
@@ -291,38 +297,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 // Scrollable Content
                 Expanded(
-                  child: _isLoadingInitial
-                      ? const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)))
-                      : _errorMessage != null
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.error_outline_rounded,
-                                      color: Color(0xFFF43F5E), size: 48),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Gagal memuat data:\n$_errorMessage',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Color(0xFFCBD5E1)),
+                  child: _currentRoute == '/backup' 
+                      ? const BackupScreen()
+                      : _isLoadingInitial
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)))
+                          : _errorMessage != null
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.error_outline_rounded,
+                                          color: Color(0xFFF43F5E), size: 48),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Gagal memuat data:\n$_errorMessage',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(color: Color(0xFFCBD5E1)),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _loadDashboardData,
+                                        child: const Text('Coba Lagi'),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _loadDashboardData,
-                                    child: const Text('Coba Lagi'),
+                                )
+                              : RefreshIndicator(
+                                  onRefresh: () async => _loadDashboardData(),
+                                  color: const Color(0xFF10B981),
+                                  backgroundColor: const Color(0xFF1E293B),
+                                  child: SingleChildScrollView(
+                                    padding: const EdgeInsets.all(32.0),
+                                    child: _buildMainContent(),
                                   ),
-                                ],
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () async => _loadDashboardData(),
-                              color: const Color(0xFF10B981),
-                              backgroundColor: const Color(0xFF1E293B),
-                              child: SingleChildScrollView(
-                                padding: const EdgeInsets.all(32.0),
-                                child: _buildMainContent(),
-                              ),
-                            ),
+                                ),
                 ),
               ],
             ),
