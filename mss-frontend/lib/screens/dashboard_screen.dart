@@ -411,7 +411,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     padding: const EdgeInsets.all(32.0),
                                     child: _buildMainContent(),
                                   ),
-                                ),
+                                );
+                    }
+                  }(),
                 ),
               ],
             ),
