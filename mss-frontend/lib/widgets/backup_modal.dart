@@ -57,7 +57,7 @@ class _BackupModalState extends State<BackupModal> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: const [
-                Icon(Icons.cloud_upload_rounded, color: Color(0xFF06B6D4)),
+                Icon(Icons.cloud_upload, color: Color(0xFF06B6D4)),
                 SizedBox(width: 10),
                 Text('Trigger Backup NAS', style: TextStyle(color: Colors.white, fontSize: 18)),
               ],
@@ -251,7 +251,7 @@ class _BackupModalState extends State<BackupModal> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.3)),
                     ),
-                    child: const Icon(Icons.dns_rounded, color: Color(0xFF06B6D4), size: 22),
+                    child: const Icon(Icons.dns, color: Color(0xFF06B6D4), size: 22),
                   ),
                   const SizedBox(width: 14),
                   Column(
@@ -275,7 +275,7 @@ class _BackupModalState extends State<BackupModal> {
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                icon: const Icon(Icons.close, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -299,9 +299,9 @@ class _BackupModalState extends State<BackupModal> {
                       final last = snapshot.data?.lastBackup ?? 'Belum ada data';
                       return Row(
                         children: [
-                          _buildStatBadge('Total Berkas', '$count file', Icons.folder_zip_rounded),
+                          _buildStatBadge('Total Berkas', '$count file', Icons.folder_zip),
                           const SizedBox(width: 24),
-                          _buildStatBadge('Backup Terakhir', last, Icons.schedule_rounded),
+                          _buildStatBadge('Backup Terakhir', last, Icons.schedule),
                         ],
                       );
                     },
@@ -321,7 +321,7 @@ class _BackupModalState extends State<BackupModal> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                         )
-                      : const Icon(Icons.play_circle_fill_rounded, size: 18),
+                      : const Icon(Icons.play_circle_fill, size: 18),
                   label: Text(
                     _isTriggering ? 'Memproses...' : 'Trigger Backup',
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -365,7 +365,7 @@ class _BackupModalState extends State<BackupModal> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.info_outline_rounded, size: 40, color: Color(0xFFF59E0B)),
+                        const Icon(Icons.info_outline, size: 40, color: Color(0xFFF59E0B)),
                         const SizedBox(height: 10),
                         Text(
                           snapshot.error.toString().replaceAll('Exception: ', ''),
@@ -392,7 +392,7 @@ class _BackupModalState extends State<BackupModal> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.inventory_2_outlined, size: 44, color: Color(0xFF475569)),
+                        const Icon(Icons.inventory_2, size: 44, color: Color(0xFF475569)),
                         const SizedBox(height: 12),
                         Text(
                           _selectedFilter == 'Semua'
@@ -427,7 +427,7 @@ class _BackupModalState extends State<BackupModal> {
                               color: badgeColor.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(Icons.storage_rounded, color: badgeColor, size: 20),
+                            child: Icon(Icons.storage, color: badgeColor, size: 20),
                           ),
                           const SizedBox(width: 12),
                           Expanded(

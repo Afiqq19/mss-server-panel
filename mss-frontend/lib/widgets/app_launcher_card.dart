@@ -17,19 +17,19 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
   IconData _getIconData(String iconName) {
     switch (iconName.toLowerCase()) {
       case 'docker':
-        return Icons.dns_rounded;
+        return Icons.dns;
       case 'cloud':
-        return Icons.cloud_circle_rounded;
+        return Icons.cloud_circle;
       case 'school':
-        return Icons.school_rounded;
+        return Icons.school;
       case 'storage':
-        return Icons.storage_rounded;
+        return Icons.storage;
       case 'database':
-        return Icons.dataset_rounded;
+        return Icons.dataset;
       case 'web':
-        return Icons.language_rounded;
+        return Icons.language;
       default:
-        return Icons.rocket_launch_rounded;
+        return Icons.rocket_launch;
     }
   }
 
@@ -167,7 +167,7 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
                 ),
               ),
               Icon(
-                Icons.open_in_new_rounded,
+                Icons.open_in_new,
                 size: 18,
                 color: _isHovered ? color : const Color(0xFF475569),
               ),

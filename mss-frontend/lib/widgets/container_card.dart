@@ -29,8 +29,8 @@ class _ContainerCardState extends State<ContainerCard> {
           children: [
             Icon(
               action == 'stop'
-                  ? Icons.warning_amber_rounded
-                  : Icons.help_outline_rounded,
+                  ? Icons.warning_amber
+                  : Icons.help_outline,
               color: action == 'stop'
                   ? const Color(0xFFF43F5E)
                   : const Color(0xFF06B6D4),
@@ -180,7 +180,7 @@ class _ContainerCardState extends State<ContainerCard> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.hub_rounded,
+                          const Icon(Icons.hub,
                               size: 12, color: Color(0xFF06B6D4)),
                           const SizedBox(width: 4),
                           Text(
@@ -230,7 +230,7 @@ class _ContainerCardState extends State<ContainerCard> {
                       Expanded(
                         child: _buildActionButton(
                           label: 'Start',
-                          icon: Icons.play_arrow_rounded,
+                          icon: Icons.play_arrow,
                           color: const Color(0xFF10B981),
                           onPressed: () =>
                               _confirmAndExecute(context, 'start'),
@@ -240,7 +240,7 @@ class _ContainerCardState extends State<ContainerCard> {
                       Expanded(
                         child: _buildActionButton(
                           label: 'Restart',
-                          icon: Icons.refresh_rounded,
+                          icon: Icons.refresh,
                           color: const Color(0xFFF59E0B),
                           onPressed: () =>
                               _confirmAndExecute(context, 'restart'),
@@ -250,7 +250,7 @@ class _ContainerCardState extends State<ContainerCard> {
                       Expanded(
                         child: _buildActionButton(
                           label: 'Stop',
-                          icon: Icons.stop_rounded,
+                          icon: Icons.stop,
                           color: const Color(0xFFF43F5E),
                           onPressed: () =>
                               _confirmAndExecute(context, 'stop'),

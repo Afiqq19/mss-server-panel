@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline_rounded,
+                            const Icon(Icons.error_outline,
                                 color: Color(0xFFF43F5E), size: 18),
                             const SizedBox(width: 8),
                             Expanded(
@@ -179,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email Administrator',
                         labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(Icons.email_outlined,
+                        prefixIcon: const Icon(Icons.email,
                             color: Color(0xFF06B6D4)),
                         filled: true,
                         fillColor: const Color(0xFF0B1120),
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        prefixIcon: const Icon(Icons.lock_outline_rounded,
+                        prefixIcon: const Icon(Icons.lock_outline,
                             color: Color(0xFF06B6D4)),
                         filled: true,
                         fillColor: const Color(0xFF0B1120),

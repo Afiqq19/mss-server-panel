@@ -256,7 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           if (!isDesktop) ...[
                             IconButton(
-                              icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                              icon: const Icon(Icons.menu, color: Colors.white),
                               onPressed: () {
                                 _scaffoldKey.currentState?.openDrawer();
                               },
@@ -302,7 +302,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onPressed: () {
                               setState(() => _currentRoute = '/backup');
                             },
-                            icon: const Icon(Icons.backup_rounded, size: 18),
+                            icon: const Icon(Icons.backup, size: 18),
                             label: const Text(
                               'Backup NAS',
                               style: TextStyle(fontWeight: FontWeight.w600),
@@ -320,7 +320,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             )
                           else
                             IconButton(
-                              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B), size: 20),
+                              icon: const Icon(Icons.refresh, color: Color(0xFF64748B), size: 20),
                               onPressed: () {
                                 _loadDashboardData();
                               },
@@ -343,7 +343,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.error_outline_rounded,
+                                      const Icon(Icons.error_outline,
                                           color: Color(0xFFF43F5E), size: 48),
                                       const SizedBox(height: 16),
                                       Text(
@@ -403,7 +403,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: const Color(0xFF10B981).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.view_in_ar_rounded,
+                    child: const Icon(Icons.view_in_ar,
                         size: 20, color: Color(0xFF10B981)),
                   ),
                   const SizedBox(width: 12),
@@ -483,7 +483,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: const Color(0xFF8B5CF6).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.rocket_launch_rounded,
+                child: const Icon(Icons.rocket_launch,
                     size: 20, color: Color(0xFF8B5CF6)),
               ),
               const SizedBox(width: 12),
@@ -562,7 +562,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Center(
         child: Column(
           children: const [
-            Icon(Icons.layers_clear_rounded, size: 40, color: Color(0xFF64748B)),
+            Icon(Icons.layers_clear, size: 40, color: Color(0xFF64748B)),
             SizedBox(height: 12),
             Text(
               'Tidak ada container yang terdeteksi dari Portainer.',

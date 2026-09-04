@@ -47,7 +47,7 @@ class HostMonitorCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
-                      Icons.dns_rounded,
+                      Icons.dns,
                       color: Color(0xFF06B6D4),
                       size: 22,
                     ),
@@ -124,8 +124,8 @@ class HostMonitorCard extends StatelessWidget {
                       children: [
                         Icon(
                           stats.isCharging
-                              ? Icons.battery_charging_full_rounded
-                              : Icons.battery_std_rounded,
+                              ? Icons.battery_charging_full
+                              : Icons.battery_std,
                           color: stats.batteryPercent > 20
                               ? const Color(0xFF10B981)
                               : const Color(0xFFF43F5E),
@@ -156,7 +156,7 @@ class HostMonitorCard extends StatelessWidget {
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.thermostat_rounded,
+                            Icons.thermostat,
                             color: Color(0xFFF59E0B),
                             size: 18,
                           ),
@@ -191,7 +191,7 @@ class HostMonitorCard extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.schedule_rounded,
+                        const Icon(Icons.schedule,
                             size: 16, color: Color(0xFF06B6D4)),
                         const SizedBox(width: 8),
                         Text(
@@ -273,7 +273,7 @@ class HostMonitorCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.speed_rounded,
+                  const Icon(Icons.speed,
                       size: 18, color: Color(0xFF06B6D4)),
                   const SizedBox(width: 8),
                   const Text(
@@ -355,7 +355,7 @@ class HostMonitorCard extends StatelessWidget {
           totalText: '${stats.ramTotalGb.toStringAsFixed(1)} GB',
           percent: stats.ramUsagePercent,
           color: const Color(0xFF8B5CF6),
-          icon: Icons.memory_rounded,
+          icon: Icons.memory,
         ),
         const SizedBox(height: 14),
         // Storage Card
@@ -365,7 +365,7 @@ class HostMonitorCard extends StatelessWidget {
           totalText: '${stats.diskTotalGb.toStringAsFixed(1)} GB',
           percent: stats.diskUsagePercent,
           color: const Color(0xFF10B981),
-          icon: Icons.storage_rounded,
+          icon: Icons.storage,
         ),
       ],
     );

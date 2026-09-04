@@ -89,7 +89,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Dashboard',
                   iconWidget: Icon(
-                    Icons.dashboard_rounded,
+                    Icons.dashboard,
                     size: 20,
                     color: currentRoute == '/dashboard' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
@@ -98,7 +98,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Containers',
                   iconWidget: Icon(
-                    Icons.data_object_rounded,
+                    Icons.data_object,
                     size: 20,
                     color: currentRoute == '/containers' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
@@ -107,7 +107,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Storage & Backup',
                   iconWidget: Icon(
-                    Icons.cloud_sync_rounded,
+                    Icons.cloud_sync,
                     size: 20,
                     color: currentRoute == '/backup' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
@@ -117,7 +117,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Network',
                   iconWidget: Icon(
-                    Icons.router_rounded,
+                    Icons.router,
                     size: 20,
                     color: currentRoute == '/network' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
@@ -139,7 +139,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Settings',
                   iconWidget: Icon(
-                    Icons.settings_rounded,
+                    Icons.settings,
                     size: 20,
                     color: currentRoute == '/settings' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
@@ -162,7 +162,7 @@ class Sidebar extends StatelessWidget {
                 const CircleAvatar(
                   radius: 18,
                   backgroundColor: Color(0xFF1E293B),
-                  child: Icon(Icons.person_rounded, color: Color(0xFF94A3B8), size: 20),
+                  child: Icon(Icons.person, color: Color(0xFF94A3B8), size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -188,7 +188,7 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout_rounded, color: Color(0xFF64748B), size: 20),
+                  icon: const Icon(Icons.logout, color: Color(0xFF64748B), size: 20),
                   onPressed: () {},
                 ),
               ],

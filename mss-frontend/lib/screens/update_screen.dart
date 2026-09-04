@@ -102,7 +102,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 54),
+                          const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 54),
                           const SizedBox(height: 16),
                           const Text(
                             'Gagal Memperbarui Server',
@@ -133,7 +133,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
                                   border: Border.all(color: const Color(0xFF10B981), width: 2),
                                 ),
                                 child: const Center(
-                                  child: Icon(Icons.check_rounded, color: Color(0xFF10B981), size: 30),
+                                  child: Icon(Icons.check, color: Color(0xFF10B981), size: 30),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -217,7 +217,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
-                                icon: const Icon(Icons.rocket_launch_rounded, size: 18),
+                                icon: const Icon(Icons.rocket_launch, size: 18),
                                 label: const Text('Buka Dashboard Panel', style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
                               const Text(
