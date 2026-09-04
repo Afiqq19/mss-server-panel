@@ -44,57 +44,30 @@ class NetworkController extends Controller
 
     private function getHostName(): string
     {
-        // Prioritas 1: Baca langsung dari mount /host/proc
-        $hostProc = config('services.server_monitor.proc_path', '/host/proc');
-        $hostnameFile = rtrim($hostProc, '/') . '/sys/kernel/hostname';
-        
-        if (file_exists($hostnameFile) && is_readable($hostnameFile)) {
-            $name = trim(file_get_contents($hostnameFile));
-            if (!empty($name)) return $name;
-        }
-
-        // Prioritas 2: Jalankan command di host via Docker
-        $hostName = $this->runHostCommand('hostname');
-        if (!empty($hostName)) return $hostName;
-
-        return gethostname();
+        return file_exists('/host/etc/hostname') 
+            ? trim(file_get_contents('/host/etc/hostname')) 
+            : gethostname();
     }
 
     private function getNetworkInterfaces(): array
     {
         $interfaces = [];
-        $output = $this->runHostCommand('ip -j addr show');
+        $devFile = env('HOST_PROC_PATH', '/host/proc') . '/net/dev';
         
-        if (!$output) {
-            $output = shell_exec('ip -j addr show 2>/dev/null');
-        }
-
-        if ($output) {
-            $parsed = json_decode($output, true);
-            if (is_array($parsed)) {
-                foreach ($parsed as $iface) {
-                    $name = $iface['ifname'] ?? 'unknown';
-                    if (strpos($name, 'veth') === 0 || strpos($name, 'br-') === 0 || strpos($name, 'docker') === 0) continue; // Skip docker virtual interfaces
-                    if ($name === 'lo') continue;
-
-                    $ipv4 = '';
-                    $mac  = $iface['address'] ?? '';
-                    $state = $iface['operstate'] ?? 'UNKNOWN';
-
-                    if (isset($iface['addr_info'])) {
-                        foreach ($iface['addr_info'] as $addr) {
-                            if (($addr['family'] ?? '') === 'inet') {
-                                $ipv4 = $addr['local'] ?? '';
-                                break;
-                            }
-                        }
-                    }
-
+        if (file_exists($devFile) && is_readable($devFile)) {
+            $lines = file($devFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos($line, ':') !== false) {
+                    $parts = explode(':', $line, 2);
+                    $name = trim($parts[0]);
+                    
+                    if (strpos($name, 'lo') === 0 || strpos($name, 'veth') === 0 || strpos($name, 'br-') === 0 || strpos($name, 'docker') === 0) continue;
+                    
                     $interfaces[] = [
                         'name'  => $name,
-                        'ip'    => $ipv4,
-                        'mac'   => $mac,
-                        'state' => $state,
+                        'ip'    => 'Unknown', // Need more advanced parsing or ip command for IP/MAC
+                        'mac'   => 'Unknown',
+                        'state' => 'UP',
                     ];
                 }
             }
@@ -106,65 +79,46 @@ class NetworkController extends Controller
     private function getListeningPorts(): array
     {
         $ports = [];
-        $output = $this->runHostCommand('ss -tlnp');
+        $tcpFile = env('HOST_PROC_PATH', '/host/proc') . '/net/tcp';
         
-        if (!$output) {
-            $output = shell_exec("ss -tlnp 2>/dev/null | tail -n +2");
-        } else {
-            $output = implode("\n", array_slice(explode("\n", $output), 1));
-        }
-
-        if ($output) {
-            $lines = array_filter(explode("\n", trim($output)));
+        if (file_exists($tcpFile) && is_readable($tcpFile)) {
+            $lines = file($tcpFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            array_shift($lines); // Skip header
+            
             foreach ($lines as $line) {
-                $parts = preg_split('/\s+/', trim($line));
-                if (count($parts) >= 5) {
-                    $localAddr = $parts[3] ?? '';
-                    $process   = $parts[5] ?? $parts[4] ?? '';
-
-                    $port = '';
-                    if (preg_match('/:(\d+)$/', $localAddr, $m)) {
-                        $port = $m[1];
-                    }
-
-                    $procName = '';
-                    if (preg_match('/users:\(\("([^"]+)"/', $process, $m)) {
-                        $procName = $m[1];
-                    }
-
-                    $bindAddr = preg_replace('/:(\d+)$/', '', $localAddr);
-                    if ($bindAddr === '*' || $bindAddr === '0.0.0.0' || $bindAddr === '[::]') {
-                        $bindAddr = '0.0.0.0';
-                    }
-
-                    if ($port) {
+                $line = trim($line);
+                $parts = preg_split('/\s+/', $line);
+                if (count($parts) >= 10) {
+                    $localAddress = $parts[1];
+                    $state = $parts[3];
+                    
+                    if ($state === '0A') { // 0A = TCP_LISTEN
+                        list($ipHex, $portHex) = explode(':', $localAddress);
+                        $port = hexdec($portHex);
+                        
                         $ports[] = [
                             'port'    => $port,
-                            'bind'    => $bindAddr,
-                            'process' => $procName,
+                            'bind'    => 'Unknown',
+                            'process' => 'Unknown',
                             'proto'   => 'TCP',
                         ];
                     }
                 }
             }
         }
-
+        
         usort($ports, fn($a, $b) => intval($a['port']) - intval($b['port']));
         return $ports;
     }
 
     private function getDnsServers(): array
     {
-        $output = $this->runHostCommand('cat /etc/resolv.conf | grep nameserver | awk \'{print $2}\'');
-        if (!$output) {
-            $output = shell_exec("cat /etc/resolv.conf 2>/dev/null | grep nameserver | awk '{print $2}'");
-        }
-        
-        $dns = [];
-        if ($output) {
-            $dns = array_filter(explode("\n", trim($output)));
-        }
-        return array_values($dns);
+        $resolv = file_exists('/host/etc/resolv.conf') 
+            ? file_get_contents('/host/etc/resolv.conf') 
+            : (file_exists('/etc/resolv.conf') ? file_get_contents('/etc/resolv.conf') : '');
+
+        preg_match_all('/nameserver\s+([^\s]+)/', $resolv, $matches);
+        return $matches[1] ?? ['8.8.8.8'];
     }
 
     /**

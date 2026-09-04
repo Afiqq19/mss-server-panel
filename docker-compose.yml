@@ -17,9 +17,10 @@ services:
       # Host mounts untuk Linux VPS Monitoring, Docker & Backup Modules
       # 1. Docker socket untuk kontrol langsung / status Docker host
       - /var/run/docker.sock:/var/run/docker.sock
-      # 2. Host proc & sys agar PHP membaca metrik CPU/RAM & Suhu/Baterai host Toshiba
+      # 2. Host proc, sys, & etc agar PHP membaca metrik CPU/RAM, Suhu/Baterai, dan Hostname/DNS host Toshiba
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
+      - /etc:/host/etc:ro
       # 3. Direktori skrip backup otomatis host
       - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/home/mss/backup-otomatis
       - ${BACKUP_HOST_SCRIPT_DIR:-/home/mss/backup-otomatis}:/host/backup-scripts
@@ -95,6 +96,22 @@ services:
     volumes:
       - ./mss-backend/public:/usr/share/nginx/html:ro
       - ./nginx-frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - mss-network
+
+  # ==========================================
+  # Real Web Terminal (ttyd)
+  # ==========================================
+  mss-ttyd:
+    image: tsl0922/ttyd:latest
+    container_name: mss-ttyd
+    restart: unless-stopped
+    privileged: true
+    pid: host
+    volumes:
+      - /:/host_fs
+    # ttyd parameters: -W (writable), -b /ttyd (base path)
+    command: ttyd -W -b /ttyd chroot /host_fs /bin/bash -c "su - root"
     networks:
       - mss-network
 
