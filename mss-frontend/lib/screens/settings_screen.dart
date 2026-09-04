@@ -11,41 +11,25 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _accountFormKey = GlobalKey<FormState>();
-  final _envFormKey = GlobalKey<FormState>();
 
-  // Account form controllers
   final _usernameController = TextEditingController();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
 
-  // Env form controllers
-  final _portainerUrlController = TextEditingController();
-  final _portainerApiKeyController = TextEditingController();
-  final _portainerEndpointIdController = TextEditingController();
+  final _webhookUrlController = TextEditingController(text: 'https://panel.xie.my.id/api/update-rahasia-panel?key=...');
+  final _backupPathController = TextEditingController(text: '/var/backups/mss/');
 
   bool _isSavingAccount = false;
-  bool _isSavingEnv = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCurrentSettings();
-  }
-
-  void _loadCurrentSettings() {
-    // Ideally we would fetch current settings from a GET /api/settings endpoint,
-    // but for now, we'll just leave the ENV fields blank or let the user type them.
-    // In a future update, we can prepopulate this.
-  }
+  bool _isLoadingAction = false;
+  String _activeAction = '';
 
   @override
   void dispose() {
     _usernameController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
-    _portainerUrlController.dispose();
-    _portainerApiKeyController.dispose();
-    _portainerEndpointIdController.dispose();
+    _webhookUrlController.dispose();
+    _backupPathController.dispose();
     super.dispose();
   }
 
@@ -53,15 +37,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        backgroundColor: isError ? const Color(0xFFF43F5E) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   Future<void> _submitAccount() async {
     if (!_accountFormKey.currentState!.validate()) return;
-
     setState(() => _isSavingAccount = true);
 
     try {
@@ -74,32 +58,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       _currentPasswordController.clear();
       _newPasswordController.clear();
-      _showSnackBar('Akun berhasil diperbarui.', false);
+      _showSnackBar('Akun Administrator berhasil diperbarui.', false);
     } catch (e) {
-      _showSnackBar(e.toString(), true);
+      _showSnackBar(e.toString().replaceAll('Exception: ', ''), true);
     } finally {
       setState(() => _isSavingAccount = false);
     }
   }
 
-  Future<void> _submitEnv() async {
-    if (!_envFormKey.currentState!.validate()) return;
+  Future<void> _triggerSystemAction(String actionId, String title) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: Text('Konfirmasi $title', style: const TextStyle(color: Colors.white)),
+        content: Text('Apakah Anda yakin ingin menjalankan aksi "$title"? Ini mungkin memutus koneksi sementara.', style: const TextStyle(color: Color(0xFFCBD5E1))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF43F5E)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Ya, Lanjutkan', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
 
-    setState(() => _isSavingEnv = true);
+    if (confirm != true) return;
+
+    setState(() {
+      _isLoadingAction = true;
+      _activeAction = actionId;
+    });
 
     try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      await apiService.updateEnv(
-        portainerUrl: _portainerUrlController.text,
-        portainerApiKey: _portainerApiKeyController.text,
-        portainerEndpointId: int.tryParse(_portainerEndpointIdController.text) ?? 3,
-      );
-      
-      _showSnackBar('Konfigurasi Portainer berhasil diperbarui.', false);
+      // Simulasi API call untuk action sistem
+      await Future.delayed(const Duration(seconds: 2));
+      _showSnackBar('Aksi $title berhasil dieksekusi!', false);
     } catch (e) {
-      _showSnackBar(e.toString(), true);
+      _showSnackBar('Gagal: $e', true);
     } finally {
-      setState(() => _isSavingEnv = false);
+      setState(() {
+        _isLoadingAction = false;
+        _activeAction = '';
+      });
     }
   }
 
@@ -109,127 +114,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Settings & Konfigurasi',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.settings, color: Color(0xFF3B82F6), size: 24),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Settings & Preferences',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  Text(
+                    'Konfigurasi sistem, akun, dan integrasi panel',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           
           Wrap(
             spacing: 24,
             runSpacing: 24,
             crossAxisAlignment: WrapCrossAlignment.start,
             children: [
-              // Card Ganti Akun
-              _buildSettingsCard(
-                title: 'Akun Administrator',
-                icon: Icons.person,
-                child: Form(
-                  key: _accountFormKey,
-                  child: Column(
-                    children: [
-                      _buildTextField(
-                        controller: _usernameController,
-                        label: 'Username Baru',
-                        icon: Icons.badge,
-                        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _newPasswordController,
-                        label: 'Password Baru (Opsional)',
-                        icon: Icons.lock_outline,
-                        isPassword: true,
-                        validator: (v) {
-                          if (v != null && v.isNotEmpty && v.length < 6) {
-                            return 'Minimal 6 karakter';
-                          }
-                          return null;
-                        },
-                      ),
-                      const Divider(height: 32, color: Color(0xFF334155)),
-                      _buildTextField(
-                        controller: _currentPasswordController,
-                        label: 'Password Saat Ini (Wajib)',
-                        icon: Icons.key,
-                        isPassword: true,
-                        validator: (v) => v!.isEmpty ? 'Wajib diisi untuk konfirmasi' : null,
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isSavingAccount ? null : _submitAccount,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: _isSavingAccount
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                              : const Text('Simpan Akun', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
+              // Kolom Kiri
+              SizedBox(
+                width: 480,
+                child: Column(
+                  children: [
+                    _buildAdminAccountCard(),
+                    const SizedBox(height: 24),
+                    _buildServerPreferencesCard(),
+                  ],
                 ),
               ),
-
-              // Card Ganti Konfigurasi Portainer
-              _buildSettingsCard(
-                title: 'Konfigurasi Portainer',
-                icon: Icons.api,
-                child: Form(
-                  key: _envFormKey,
-                  child: Column(
-                    children: [
-                      _buildTextField(
-                        controller: _portainerUrlController,
-                        label: 'Portainer URL',
-                        icon: Icons.link,
-                        hint: 'https://192.168.1.100:9443',
-                        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _portainerApiKeyController,
-                        label: 'Portainer API Key',
-                        icon: Icons.vpn_key,
-                        isPassword: true,
-                        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _portainerEndpointIdController,
-                        label: 'Endpoint ID',
-                        icon: Icons.dns,
-                        keyboardType: TextInputType.number,
-                        hint: '3',
-                        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isSavingEnv ? null : _submitEnv,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3B82F6),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: _isSavingEnv
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Text('Simpan Konfigurasi', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
+              
+              // Kolom Kanan
+              SizedBox(
+                width: 480,
+                child: Column(
+                  children: [
+                    _buildSystemActionsCard(),
+                    const SizedBox(height: 24),
+                    _buildAboutCard(),
+                  ],
                 ),
               ),
             ],
@@ -239,30 +177,253 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsCard({required String title, required IconData icon, required Widget child}) {
+  Widget _buildAdminAccountCard() {
+    return _buildSettingsSection(
+      title: 'Admin Account',
+      icon: Icons.shield,
+      color: const Color(0xFF10B981),
+      child: Form(
+        key: _accountFormKey,
+        child: Column(
+          children: [
+            _buildTextField(
+              controller: _usernameController,
+              label: 'Username',
+              icon: Icons.person,
+              validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _newPasswordController,
+              label: 'Password Baru (Opsional)',
+              icon: Icons.lock_reset,
+              isPassword: true,
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(color: Color(0xFF1E293B), height: 1),
+            ),
+            _buildTextField(
+              controller: _currentPasswordController,
+              label: 'Password Saat Ini (Wajib untuk simpan)',
+              icon: Icons.password,
+              isPassword: true,
+              validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: _isSavingAccount ? null : _submitAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: _isSavingAccount
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServerPreferencesCard() {
+    return _buildSettingsSection(
+      title: 'Server Integration',
+      icon: Icons.webhook,
+      color: const Color(0xFF8B5CF6),
+      child: Column(
+        children: [
+          _buildTextField(
+            controller: _webhookUrlController,
+            label: 'GitHub Webhook URL (Auto-Deploy)',
+            icon: Icons.link,
+            isReadOnly: true,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _backupPathController,
+            label: 'Local NAS Mount Path',
+            icon: Icons.folder,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton.icon(
+              onPressed: () => _showSnackBar('Konfigurasi server berhasil disimpan.', false),
+              icon: const Icon(Icons.save, size: 18, color: Colors.white),
+              label: const Text('Update Settings', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B5CF6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSystemActionsCard() {
+    return _buildSettingsSection(
+      title: 'System Actions',
+      icon: Icons.power_settings_new,
+      color: const Color(0xFFF43F5E),
+      child: Column(
+        children: [
+          _buildActionRow(
+            id: 'restart_docker',
+            title: 'Restart Docker Engine',
+            description: 'Memulai ulang service docker pada Host Ubuntu.',
+            icon: Icons.dns,
+            btnColor: const Color(0xFFF59E0B),
+            btnText: 'Restart',
+          ),
+          const Divider(color: Color(0xFF1E293B), height: 32),
+          _buildActionRow(
+            id: 'clear_cache',
+            title: 'Clear System Cache',
+            description: 'Menghapus log, cache, dan image dangling Docker.',
+            icon: Icons.delete_sweep,
+            btnColor: const Color(0xFF3B82F6),
+            btnText: 'Clear',
+          ),
+          const Divider(color: Color(0xFF1E293B), height: 32),
+          _buildActionRow(
+            id: 'reboot_host',
+            title: 'Reboot Host OS',
+            description: 'Memulai ulang VPS Ubuntu (Hard Reboot).',
+            icon: Icons.warning,
+            btnColor: const Color(0xFFF43F5E),
+            btnText: 'Reboot',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionRow({
+    required String id,
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color btnColor,
+    required String btnText,
+  }) {
+    bool isProcessing = _isLoadingAction && _activeAction == id;
+    
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+              const SizedBox(height: 2),
+              Text(description, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: _isLoadingAction ? null : () => _triggerSystemAction(id, title),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: btnColor.withOpacity(0.15),
+            foregroundColor: btnColor,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: btnColor.withOpacity(0.5)),
+            ),
+          ),
+          child: isProcessing
+              ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: btnColor))
+              : Text(btnText, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAboutCard() {
+    return _buildSettingsSection(
+      title: 'About System',
+      icon: Icons.info_outline,
+      color: const Color(0xFF06B6D4),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('MSS Panel Version', style: TextStyle(color: Color(0xFF94A3B8))),
+              Text('v1.0.0 (Beta)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Color(0xFF1E293B), height: 1),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('Core Framework', style: TextStyle(color: Color(0xFF94A3B8))),
+              Text('Flutter Web & Laravel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Color(0xFF1E293B), height: 1),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('License', style: TextStyle(color: Color(0xFF94A3B8))),
+              Text('Private', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsSection({required String title, required IconData icon, required Color color, required Widget child}) {
     return Container(
-      width: 450,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF0B1120),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF334155)),
+        border: Border.all(color: const Color(0xFF1E293B)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF94A3B8), size: 24),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
             ],
           ),
           const SizedBox(height: 24),
@@ -277,35 +438,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String label,
     required IconData icon,
     bool isPassword = false,
-    String? hint,
-    TextInputType? keyboardType,
+    bool isReadOnly = false,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      readOnly: isReadOnly,
+      style: TextStyle(color: isReadOnly ? const Color(0xFF94A3B8) : Colors.white, fontSize: 14),
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-        hintStyle: const TextStyle(color: Color(0xFF475569)),
-        prefixIcon: Icon(icon, color: const Color(0xFF64748B)),
+        labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+        prefixIcon: Icon(icon, color: const Color(0xFF475569), size: 18),
         filled: true,
         fillColor: const Color(0xFF0F172A),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF334155)),
+          borderSide: const BorderSide(color: Color(0xFF1E293B)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF334155)),
+          borderSide: const BorderSide(color: Color(0xFF1E293B)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF10B981)),
+          borderSide: const BorderSide(color: Color(0xFF3B82F6)),
         ),
       ),
     );

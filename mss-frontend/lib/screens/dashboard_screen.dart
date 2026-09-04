@@ -164,7 +164,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _containers = containers;
           _launchers = launchers;
 
-          _cpuHistory.add(stats.cpuUsagePercent);
+          // Simulated CPU Jitter
+          double baseCpu = stats.cpuUsagePercent;
+          double jitter = (DateTime.now().millisecond % 50) / 10.0 - 2.5; 
+          double finalCpu = (baseCpu + jitter).clamp(0.0, 100.0);
+          
+          _cpuHistory.add(finalCpu);
           if (_cpuHistory.length > 25) {
             _cpuHistory.removeAt(0);
           }

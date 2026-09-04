@@ -278,11 +278,28 @@ class HostMonitorCard extends StatelessWidget {
 
   Widget _buildCpuChart(double width) {
     List<FlSpot> spots = [];
+    double minVal = 100.0;
+    double maxVal = 0.0;
+
     for (int i = 0; i < cpuHistory.length; i++) {
-      spots.add(FlSpot(i.toDouble(), cpuHistory[i]));
+      final val = cpuHistory[i];
+      if (val < minVal) minVal = val;
+      if (val > maxVal) maxVal = val;
+      spots.add(FlSpot(i.toDouble(), val));
     }
+    
     if (spots.isEmpty) {
       spots = [const FlSpot(0, 10), const FlSpot(1, 15)];
+      minVal = 0;
+      maxVal = 100;
+    }
+
+    // Dynamic scale to make small fluctuations visible
+    double chartMinY = (minVal - 5).clamp(0.0, 100.0);
+    double chartMaxY = (maxVal + 5).clamp(0.0, 100.0);
+    if (chartMaxY - chartMinY < 10) {
+      chartMinY = (chartMinY - 5).clamp(0.0, 100.0);
+      chartMaxY = (chartMaxY + 5).clamp(0.0, 100.0);
     }
 
     return Container(
@@ -341,8 +358,8 @@ class HostMonitorCard extends StatelessWidget {
                 borderData: FlBorderData(show: false),
                 minX: 0,
                 maxX: (cpuHistory.length - 1).toDouble().clamp(1.0, 30.0),
-                minY: 0,
-                maxY: 100,
+                minY: chartMinY,
+                maxY: chartMaxY,
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
@@ -358,9 +375,11 @@ class HostMonitorCard extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          const Color(0xFF06B6D4).withOpacity(0.35),
+                          const Color(0xFF06B6D4).withOpacity(0.5),
+                          const Color(0xFF06B6D4).withOpacity(0.05),
                           const Color(0xFF06B6D4).withOpacity(0.0),
                         ],
+                        stops: const [0.0, 0.7, 1.0],
                       ),
                     ),
                   ),
