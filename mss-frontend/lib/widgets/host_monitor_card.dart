@@ -289,12 +289,20 @@ class HostMonitorCard extends StatelessWidget {
     }
     
     if (spots.isEmpty) {
-      spots = [const FlSpot(0, 10), const FlSpot(1, 15)];
+      spots = [const FlSpot(0, 10), const FlSpot(1, 15), const FlSpot(2, 22), const FlSpot(3, 18), const FlSpot(4, 25)];
+      minVal = 10;
+      maxVal = 25;
     }
 
+    // Auto-scale Y with padding for visible curves
+    final yRange = maxVal - minVal;
+    final yPadding = yRange < 5 ? 10.0 : yRange * 0.25;
+    final chartMinY = (minVal - yPadding).clamp(0.0, 100.0);
+    final chartMaxY = (maxVal + yPadding).clamp(0.0, 100.0);
+
     return Container(
-      height: 180,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      height: 200,
+      padding: const EdgeInsets.fromLTRB(8, 16, 16, 10),
       decoration: BoxDecoration(
         color: const Color(0xFF0B1120),
         borderRadius: BorderRadius.circular(16),
@@ -303,33 +311,43 @@ class HostMonitorCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.speed,
-                      size: 18, color: Color(0xFF06B6D4)),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'CPU Load History',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFCBD5E1),
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.speed,
+                        size: 18, color: Color(0xFF06B6D4)),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'CPU Load History',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFCBD5E1),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06B6D4).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${stats.cpuUsagePercent.toStringAsFixed(1)}%',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF06B6D4),
                     ),
                   ),
-                ],
-              ),
-              Text(
-                '${stats.cpuUsagePercent.toStringAsFixed(1)}%',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF06B6D4),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           Expanded(
@@ -338,36 +356,99 @@ class HostMonitorCard extends StatelessWidget {
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
+                  horizontalInterval: ((chartMaxY - chartMinY) / 4).clamp(1.0, 50.0),
                   getDrawingHorizontalLine: (value) => FlLine(
                     color: const Color(0xFF1E293B),
                     strokeWidth: 1,
                     dashArray: [4, 4],
                   ),
                 ),
-                titlesData: const FlTitlesData(show: false),
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 36,
+                      interval: ((chartMaxY - chartMinY) / 4).clamp(1.0, 50.0),
+                      getTitlesWidget: (value, meta) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            '${value.toInt()}%',
+                            style: const TextStyle(
+                              color: Color(0xFF475569),
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
                 borderData: FlBorderData(show: false),
                 minX: 0,
                 maxX: (cpuHistory.length - 1).toDouble().clamp(1.0, 30.0),
+                minY: chartMinY,
+                maxY: chartMaxY,
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          '${spot.y.toStringAsFixed(1)}%',
+                          const TextStyle(
+                            color: Color(0xFF06B6D4),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
                     curveSmoothness: 0.35,
                     color: const Color(0xFF06B6D4),
-                    barWidth: 3,
+                    barWidth: 2.5,
                     isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        // Only show dot on the last point
+                        if (index == spots.length - 1) {
+                          return FlDotCirclePainter(
+                            radius: 4,
+                            color: const Color(0xFF06B6D4),
+                            strokeWidth: 2,
+                            strokeColor: const Color(0xFF0B1120),
+                          );
+                        }
+                        return FlDotCirclePainter(
+                          radius: 0,
+                          color: Colors.transparent,
+                          strokeWidth: 0,
+                          strokeColor: Colors.transparent,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          const Color(0xFF06B6D4).withOpacity(0.5),
-                          const Color(0xFF06B6D4).withOpacity(0.05),
+                          const Color(0xFF06B6D4).withOpacity(0.4),
+                          const Color(0xFF06B6D4).withOpacity(0.08),
                           const Color(0xFF06B6D4).withOpacity(0.0),
                         ],
-                        stops: const [0.0, 0.7, 1.0],
+                        stops: const [0.0, 0.6, 1.0],
                       ),
                     ),
                   ),

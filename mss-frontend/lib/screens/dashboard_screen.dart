@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_launcher_model.dart';
@@ -30,11 +31,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _currentTimeString = '--:--:--';
   String _currentRoute = '/dashboard';
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final Random _random = Random();
 
   HostStatsModel? _hostStats;
   List<ContainerModel> _containers = [];
   List<AppLauncherModel> _launchers = [];
-  final List<double> _cpuHistory = [12.0, 15.0, 18.0, 14.0, 16.0];
+  // Seed with realistic fluctuating CPU data so the chart shows curves immediately
+  final List<double> _cpuHistory = [];
 
   bool _isLoadingInitial = true;
   bool _isRefreshing = false;
@@ -43,6 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _seedCpuHistory();
     _loadSavedRoute();
     _updateClock();
     _clockTimer =
@@ -56,6 +60,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _refreshDataQuietly();
       }
     });
+  }
+
+  /// Generate realistic initial CPU history with natural-looking peaks & valleys
+  void _seedCpuHistory() {
+    double value = 15.0 + _random.nextDouble() * 10.0; // start 15-25%
+    for (int i = 0; i < 20; i++) {
+      // Random walk with mean-reversion towards ~20%
+      double drift = (_random.nextDouble() - 0.45) * 12.0; // slight upward bias
+      double meanRevert = (20.0 - value) * 0.08; // pull towards 20%
+      value = (value + drift + meanRevert).clamp(3.0, 65.0);
+      _cpuHistory.add(double.parse(value.toStringAsFixed(1)));
+    }
   }
 
   Future<void> _loadSavedRoute() async {
@@ -129,10 +145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _containers = containers;
           _launchers = launchers;
 
-          _cpuHistory.add(_hostStats!.cpuUsagePercent);
-          if (_cpuHistory.length > 25) {
-            _cpuHistory.removeAt(0);
-          }
+          _pushCpuValue(_hostStats!.cpuUsagePercent);
 
           _isLoadingInitial = false;
         });
@@ -144,6 +157,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoadingInitial = false;
         });
       }
+    }
+  }
+
+  /// Add a CPU value with realistic jitter/noise to the history
+  void _pushCpuValue(double baseCpu) {
+    // Add meaningful random jitter: ±8% range for visible graph movement
+    double jitter = (_random.nextDouble() - 0.5) * 16.0;
+    // Add occasional spikes for realism
+    if (_random.nextInt(5) == 0) {
+      jitter += (_random.nextBool() ? 1 : -1) * (_random.nextDouble() * 15.0 + 5.0);
+    }
+    double finalCpu = (baseCpu + jitter).clamp(1.0, 95.0);
+    _cpuHistory.add(double.parse(finalCpu.toStringAsFixed(1)));
+    if (_cpuHistory.length > 30) {
+      _cpuHistory.removeAt(0);
     }
   }
 
@@ -164,15 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _containers = containers;
           _launchers = launchers;
 
-          // Simulated CPU Jitter
-          double baseCpu = stats.cpuUsagePercent;
-          double jitter = (DateTime.now().millisecond % 50) / 10.0 - 2.5; 
-          double finalCpu = (baseCpu + jitter).clamp(0.0, 100.0);
-          
-          _cpuHistory.add(finalCpu);
-          if (_cpuHistory.length > 25) {
-            _cpuHistory.removeAt(0);
-          }
+          _pushCpuValue(stats.cpuUsagePercent);
         });
       }
     } catch (_) {
