@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backup_screen.dart';
 import 'containers_screen.dart';
 import 'network_screen.dart';
+import 'terminal_screen.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -287,13 +289,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(width: 8),
                           ],
                           Text(
-                            _currentRoute == '/backup'
-                                ? 'Storage & Backup'
-                                : _currentRoute == '/containers'
-                                    ? 'Docker Containers'
-                                    : _currentRoute == '/network'
-                                        ? 'Network Monitoring'
-                                        : 'Dashboard',
+                            () {
+                              switch (_currentRoute) {
+                                case '/backup': return 'Storage & Backup';
+                                case '/containers': return 'Docker Containers';
+                                case '/network': return 'Network Monitoring';
+                                case '/terminal': return 'Web Terminal (Root)';
+                                case '/settings': return 'Settings & Konfigurasi';
+                                case '/dashboard':
+                                default: return 'Dashboard';
+                              }
+                            }(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: isDesktop ? 18 : 16,
@@ -364,13 +370,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 // Scrollable Content
                 Expanded(
-                  child: _currentRoute == '/backup'
-                      ? const BackupScreen()
-                      : _currentRoute == '/containers'
-                          ? const ContainersScreen()
-                          : _currentRoute == '/network'
-                              ? const NetworkScreen()
-                              : _isLoadingInitial
+                  child: () {
+                    switch (_currentRoute) {
+                      case '/backup': return const BackupScreen();
+                      case '/containers': return const ContainersScreen();
+                      case '/network': return const NetworkScreen();
+                      case '/terminal': return const TerminalScreen();
+                      case '/settings': return const SettingsScreen();
+                      case '/dashboard':
+                      default:
+                        return _isLoadingInitial
                                   ? const Center(
                                       child: CircularProgressIndicator(color: Color(0xFF10B981)))
                                   : _errorMessage != null

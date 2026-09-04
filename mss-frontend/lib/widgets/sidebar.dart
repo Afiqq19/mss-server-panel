@@ -137,6 +137,15 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 _buildMenuItem(
+                  title: 'Web Terminal',
+                  iconWidget: Icon(
+                    Icons.terminal,
+                    size: 20,
+                    color: currentRoute == '/terminal' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                  ),
+                  route: '/terminal',
+                ),
+                _buildMenuItem(
                   title: 'Settings',
                   iconWidget: Icon(
                     Icons.settings,

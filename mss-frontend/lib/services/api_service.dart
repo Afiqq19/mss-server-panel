@@ -257,4 +257,81 @@ class ApiService extends ChangeNotifier {
     }
     return {};
   }
+
+  // =================================================================
+  // TERMINAL
+  // =================================================================
+  Future<String> executeTerminalCommand(String command) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/terminal/execute'),
+            headers: _headers,
+            body: jsonEncode({'command': command}),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        return data['output'] ?? '';
+      } else {
+        throw Exception(data['message'] ?? data['output'] ?? 'Gagal eksekusi perintah');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // =================================================================
+  // SETTINGS
+  // =================================================================
+  Future<void> updateAccount({
+    required String username,
+    required String currentPassword,
+    String? newPassword,
+  }) async {
+    final body = {
+      'username': username,
+      'current_password': currentPassword,
+    };
+    if (newPassword != null && newPassword.isNotEmpty) {
+      body['new_password'] = newPassword;
+    }
+    
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/settings/update-account'),
+          headers: _headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode != 200 || data['status'] != 'success') {
+      throw Exception(data['message'] ?? 'Gagal update akun');
+    }
+  }
+
+  Future<void> updateEnv({
+    required String portainerUrl,
+    required String portainerApiKey,
+    required int portainerEndpointId,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/settings/update-env'),
+          headers: _headers,
+          body: jsonEncode({
+            'portainer_url': portainerUrl,
+            'portainer_api_key': portainerApiKey,
+            'portainer_endpoint_id': portainerEndpointId,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+    
+    final data = jsonDecode(response.body);
+    if (response.statusCode != 200 || data['status'] != 'success') {
+      throw Exception(data['message'] ?? 'Gagal update konfigurasi');
+    }
+  }
 }
