@@ -219,7 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Sidebar(
                 currentRoute: _currentRoute,
                 onNavigate: (route) {
-                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network') {
+                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings') {
                     setState(() => _currentRoute = route);
                     _saveRoute(route);
                     Navigator.pop(context); // Close drawer
@@ -243,7 +243,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Sidebar(
               currentRoute: _currentRoute,
               onNavigate: (route) {
-                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network') {
+                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings') {
                   setState(() => _currentRoute = route);
                   _saveRoute(route);
                 } else {
