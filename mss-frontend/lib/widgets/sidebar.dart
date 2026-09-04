@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class Sidebar extends StatelessWidget {
   final String currentRoute;
   final Function(String) onNavigate;
+  final VoidCallback? onLogout;
 
   const Sidebar({
     super.key,
     required this.currentRoute,
     required this.onNavigate,
+    this.onLogout,
   });
 
   @override
@@ -198,7 +200,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Color(0xFF64748B), size: 20),
-                  onPressed: () {},
+                  onPressed: onLogout,
                 ),
               ],
             ),

@@ -203,6 +203,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _confirmLogout() async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.logout, color: Color(0xFFF43F5E), size: 22),
+            SizedBox(width: 10),
+            Text('Logout', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari MSS Panel?',
+          style: TextStyle(color: Color(0xFFCBD5E1)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF43F5E)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Ya, Logout', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      final api = context.read<ApiService>();
+      await api.logout();
+    }
+  }
+
   Future<void> _handleContainerAction(String id, String action) async {
     final api = context.read<ApiService>();
     try {
@@ -259,6 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   }
                 },
+                onLogout: _confirmLogout,
               ),
             ),
       body: Row(
@@ -282,6 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   );
                 }
               },
+              onLogout: _confirmLogout,
             ),
           
           // Konten Utama Kanan
@@ -370,23 +408,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          if (_isRefreshing)
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFF10B981),
-                              ),
-                            )
-                          else
-                            IconButton(
-                              icon: const Icon(Icons.refresh, color: Color(0xFF64748B), size: 20),
-                              onPressed: () {
-                                _loadDashboardData();
-                              },
-                              tooltip: 'Refresh Dashboard',
-                            ),
+                          // Refresh berjalan di background secara otomatis (silent)
                         ],
                       ),
                     ],

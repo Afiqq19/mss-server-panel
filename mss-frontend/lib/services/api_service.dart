@@ -206,6 +206,89 @@ class ApiService extends ChangeNotifier {
     return [];
   }
 
+  Future<bool> createAppLauncher({
+    required String name,
+    required String url,
+    required String icon,
+    String? description,
+    required String category,
+    int order = 0,
+    bool isActive = true,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/app-launchers'),
+          headers: _headers,
+          body: jsonEncode({
+            'name': name,
+            'url': url,
+            'icon': icon,
+            'description': description ?? '',
+            'category': category,
+            'order': order,
+            'is_active': isActive,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception(data['message'] ?? 'Gagal menambahkan App Launcher');
+    }
+  }
+
+  Future<bool> updateAppLauncher({
+    required int id,
+    required String name,
+    required String url,
+    required String icon,
+    String? description,
+    required String category,
+    int order = 0,
+    bool isActive = true,
+  }) async {
+    final response = await http
+        .put(
+          Uri.parse('$_baseUrl/app-launchers/$id'),
+          headers: _headers,
+          body: jsonEncode({
+            'name': name,
+            'url': url,
+            'icon': icon,
+            'description': description ?? '',
+            'category': category,
+            'order': order,
+            'is_active': isActive,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception(data['message'] ?? 'Gagal mengupdate App Launcher');
+    }
+  }
+
+  Future<bool> deleteAppLauncher(int id) async {
+    final response = await http
+        .delete(
+          Uri.parse('$_baseUrl/app-launchers/$id'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return true;
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['message'] ?? 'Gagal menghapus App Launcher');
+    }
+  }
+
   // =================================================================
   // BACKUP E-ASPIRA (Bab 9.B)
   // =================================================================
