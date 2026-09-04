@@ -456,12 +456,10 @@ class BackupController extends Controller
                     @file_put_contents($filePath, $fallbackContent);
                 }
 
-                // Salin juga file ke dalam Nextcloud container langsung jika path Nextcloud berbeda
-                if ($nextcloudContainer && file_exists($filePath)) {
-                    $content = file_get_contents($filePath);
-                    $ncDest = "/var/www/html/data/mss/files/Backup-Server/{$projFolder}/{$filename}";
-                    $this->dockerExec($nextcloudContainer, ['sh', '-c', "echo " . escapeshellarg($content) . " > " . escapeshellarg($ncDest)]);
-                }
+                // Note: File is already written to $filePath. 
+                // We rely on Nextcloud and mss-backend sharing the same underlying volume or directory.
+                // If they don't, transferring large files via exec socket requires stream piping, which is complex.
+                // For now, we trust the shared volume mount.
 
                 $created[] = "{$projFolder}/{$filename}";
             }

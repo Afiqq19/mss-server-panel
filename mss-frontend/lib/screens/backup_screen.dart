@@ -139,7 +139,7 @@ class _BackupScreenState extends State<BackupScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cloud_off_rounded, color: Color(0xFFF43F5E), size: 48),
+            const Icon(Icons.cloud_off, color: Color(0xFFF43F5E), size: 48),
             const SizedBox(height: 16),
             const Text(
               'Gagal Membaca Storage NAS',
@@ -158,7 +158,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: _loadBackups,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
             ),
           ],
@@ -201,7 +201,7 @@ class _BackupScreenState extends State<BackupScreen> {
       child: Center(
         child: Column(
           children: const [
-            Icon(Icons.folder_off_rounded, size: 40, color: Color(0xFF64748B)),
+            Icon(Icons.folder_off, size: 40, color: Color(0xFF64748B)),
             SizedBox(height: 12),
             Text(
               'Belum ada file backup di NAS Nextcloud.',
@@ -225,7 +225,7 @@ class _BackupScreenState extends State<BackupScreen> {
           child: _buildStatCard(
             title: 'TOTAL BACKUP',
             value: '${_backupData!.totalBackups} File',
-            icon: Icons.folder_zip_rounded,
+            icon: Icons.folder_zip,
             color: const Color(0xFF3B82F6),
           ),
         ),
@@ -234,7 +234,7 @@ class _BackupScreenState extends State<BackupScreen> {
           child: _buildStatCard(
             title: 'BACKUP TERAKHIR',
             value: _backupData!.lastBackup ?? 'Belum ada',
-            icon: Icons.history_rounded,
+            icon: Icons.history,
             color: const Color(0xFF10B981),
             isDate: true,
           ),
@@ -244,7 +244,7 @@ class _BackupScreenState extends State<BackupScreen> {
           child: _buildStatCard(
             title: 'TOTAL PROYEK',
             value: '${_backupData!.projects.length} Proyek',
-            icon: Icons.layers_rounded,
+            icon: Icons.layers,
             color: const Color(0xFF8B5CF6),
           ),
         ),
@@ -326,7 +326,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 color: const Color(0xFF8B5CF6).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.source_rounded, size: 20, color: Color(0xFF8B5CF6)),
+              child: const Icon(Icons.source, size: 20, color: Color(0xFF8B5CF6)),
             ),
             const SizedBox(width: 12),
             const Text(
@@ -362,7 +362,7 @@ class _BackupScreenState extends State<BackupScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.folder_shared_rounded, color: Color(0xFF64748B), size: 32),
+                  const Icon(Icons.folder_shared, color: Color(0xFF64748B), size: 32),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
@@ -408,7 +408,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 color: const Color(0xFF10B981).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.table_chart_rounded, size: 20, color: Color(0xFF10B981)),
+              child: const Icon(Icons.table_chart, size: 20, color: Color(0xFF10B981)),
             ),
             const SizedBox(width: 12),
             const Text(
@@ -449,7 +449,7 @@ class _BackupScreenState extends State<BackupScreen> {
                     DataCell(
                       Row(
                         children: [
-                          const Icon(Icons.dataset_rounded, color: Color(0xFF3B82F6), size: 20),
+                          const Icon(Icons.dataset, color: Color(0xFF3B82F6), size: 20),
                           const SizedBox(width: 12),
                           Flexible(
                             child: Text(
