@@ -108,7 +108,30 @@ services:
     restart: unless-stopped
     privileged: true
     pid: "host"
-    command: ttyd -W -p 7681 -b /ttyd nsenter -t 1 -m -u -i -n -p /bin/login
+    command:
+      - ttyd
+      - -W
+      - -p
+      - "7681"
+      - -b
+      - /ttyd
+      - -t
+      - 'theme={"background":"#020617", "foreground":"#10B981", "cursor":"#10B981"}'
+      - -t
+      - 'cursorBlink=true'
+      - -t
+      - 'fontFamily="Consolas", "Courier New", monospace'
+      - -t
+      - 'fontSize=14'
+      - nsenter
+      - -t
+      - "1"
+      - -m
+      - -u
+      - -i
+      - -n
+      - -p
+      - /bin/login
     networks:
       - mss-network
 
