@@ -132,18 +132,22 @@ class BackupController extends Controller
         $relPath = trim(str_replace(rtrim($baseStorage, '/'), '', $filePath), '/\\');
         $parts = explode('/', str_replace('\\', '/', $relPath));
 
-        // Jika file ada di dalam subfolder (misal /Backup-Server/portofolio/file.sql)
+        // Jika file ada di dalam subfolder (misal /Backup-Server/E-Aspira/file.sql)
         if (count($parts) > 1) {
             $folderName = $parts[0];
-            if (strtolower($folderName) === 'easpira') return 'E-Aspira DPM';
-            return ucwords(str_replace(['-', '_'], ' ', $folderName));
+            $cleanLower = strtolower(str_replace(['-', '_', ' '], '', $folderName));
+            if (str_contains($cleanLower, 'easpira')) return 'E-Aspira';
+            if (str_contains($cleanLower, 'portofolio') || str_contains($cleanLower, 'portfolio')) return 'portofolio';
+            if (str_contains($cleanLower, 'panel') || str_contains($cleanLower, 'mss')) return 'Panel-MSS';
+            return $folderName;
         }
 
         // Jika file ada di root folder Backup-Server/
         $lowerName = strtolower(basename($filePath));
-        if (str_contains($lowerName, 'easpira')) return 'E-Aspira DPM';
+        if (str_contains($lowerName, 'easpira')) return 'E-Aspira';
+        if (str_contains($lowerName, 'portofolio') || str_contains($lowerName, 'portfolio')) return 'portofolio';
         if (str_contains($lowerName, 'nextcloud')) return 'Nextcloud NAS';
-        if (str_contains($lowerName, 'mss')) return 'MSS Panel';
+        if (str_contains($lowerName, 'panel') || str_contains($lowerName, 'mss')) return 'Panel-MSS';
 
         return 'General DB';
     }
@@ -160,34 +164,50 @@ class BackupController extends Controller
             }
 
             $storage = $this->getStoragePath();
-            $date = date('Ymd_His');
+            $date = date('Y-m-d_H-i-s');
             $created = [];
 
             // 1. Tentukan daftar folder proyek yang akan di-backup
             if (strtolower($rawProject) === 'all') {
-                $projectsToBackup = ['easpira'];
+                $defaultProjects = ['E-Aspira', 'portofolio', 'Panel-MSS'];
+                $projectsToBackup = [];
                 $subDirs = glob(rtrim($storage, '/') . '/*', GLOB_ONLYDIR);
-                foreach ($subDirs as $dir) {
-                    $slug = strtolower(basename($dir));
-                    if (!in_array($slug, $projectsToBackup)) {
-                        $projectsToBackup[] = $slug;
+                if (!empty($subDirs)) {
+                    foreach ($subDirs as $dir) {
+                        $folderName = basename($dir);
+                        if (!in_array($folderName, $projectsToBackup)) {
+                            $projectsToBackup[] = $folderName;
+                        }
+                    }
+                }
+                foreach ($defaultProjects as $def) {
+                    if (!in_array($def, $projectsToBackup)) {
+                        $projectsToBackup[] = $def;
                     }
                 }
             } else {
-                $slug = \Illuminate\Support\Str::slug($rawProject);
-                if (empty($slug)) $slug = 'general';
-                $projectsToBackup = [$slug];
+                $cleanLower = strtolower(str_replace(['-', '_', ' '], '', $rawProject));
+                if (str_contains($cleanLower, 'easpira')) {
+                    $folderName = 'E-Aspira';
+                } elseif (str_contains($cleanLower, 'portofolio') || str_contains($cleanLower, 'portfolio')) {
+                    $folderName = 'portofolio';
+                } elseif (str_contains($cleanLower, 'panel') || str_contains($cleanLower, 'mss')) {
+                    $folderName = 'Panel-MSS';
+                } else {
+                    $folderName = $rawProject;
+                }
+                $projectsToBackup = [$folderName];
             }
 
             // 2. Buat sub-folder terpisah dan backup untuk masing-masing proyek
-            foreach ($projectsToBackup as $projSlug) {
-                // Buat folder via Nextcloud container jika docker socket aktif (mengatasi permission www-data secara tuntas)
+            foreach ($projectsToBackup as $projFolder) {
+                // Buat folder via Nextcloud container jika docker socket aktif
                 if (file_exists('/var/run/docker.sock')) {
-                    shell_exec("docker exec nextcloud_nas mkdir -p \"/var/www/html/data/mss/files/Backup-Server/{$projSlug}\" 2>/dev/null");
-                    shell_exec("docker exec nextcloud_nas chmod -R 777 \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
+                    shell_exec("docker exec nextcloud_nas mkdir -p \"/var/www/html/data/mss/files/Backup-Server/{$projFolder}\" 2>/dev/null");
+                    shell_exec("docker exec nextcloud_nas chown -R www-data:www-data \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
                 }
 
-                $projectFolder = rtrim($storage, '/') . '/' . $projSlug;
+                $projectFolder = rtrim($storage, '/') . '/' . $projFolder;
                 if (!is_dir($projectFolder)) {
                     @mkdir($projectFolder, 0777, true);
                     if (!is_dir($projectFolder)) {
@@ -197,47 +217,64 @@ class BackupController extends Controller
 
                 // Fallback jika volume Nextcloud host masih ter-mount read-only
                 if (!is_dir($projectFolder) || !is_writable($projectFolder)) {
-                    $projectFolder = storage_path("app/backups/{$projSlug}");
+                    $projectFolder = storage_path("app/backups/{$projFolder}");
                     if (!is_dir($projectFolder)) {
                         @mkdir($projectFolder, 0777, true);
                     }
                 }
 
-                $filename = "{$projSlug}_db_backup_{$date}.sql";
+                $slugFile = strtolower(str_replace(['-', '_', ' '], '', $projFolder));
+                $filename = "{$slugFile}_{$date}.sql";
                 $filePath = "{$projectFolder}/{$filename}";
 
-                // Coba mariadb-dump langsung dari container jika nama container cocok
+                // Coba mariadb-dump / mysqldump langsung dari container
                 $dumpSuccess = false;
                 $dbContainer = null;
-                if ($projSlug === 'easpira' || str_contains($projSlug, 'easpira')) {
+                $dbPass = 'mss_secret_pass';
+                $dbUser = 'root';
+
+                if (str_contains($slugFile, 'easpira')) {
                     $dbContainer = 'db-easpira';
+                    $dbPass = 'mss_secret_pass';
+                } elseif (str_contains($slugFile, 'panel') || str_contains($slugFile, 'mss')) {
+                    $dbContainer = 'mss-db';
+                    $dbPass = env('DB_ROOT_PASSWORD', 'root_secret_pass');
+                } elseif (str_contains($slugFile, 'portofolio') || str_contains($slugFile, 'wordpress')) {
+                    // Coba cari container wordpress/portofolio aktif
+                    $dbContainer = 'db-wordpress';
                 }
 
                 if ($dbContainer && file_exists('/var/run/docker.sock')) {
-                    $dumpCmd = "docker exec {$dbContainer} mariadb-dump --all-databases -u root -pmss_secret_pass 2>/dev/null > " . escapeshellarg($filePath);
+                    $dumpCmd = "docker exec {$dbContainer} mariadb-dump --all-databases -u {$dbUser} -p{$dbPass} 2>/dev/null > " . escapeshellarg($filePath);
                     shell_exec($dumpCmd);
+                    if (!file_exists($filePath) || filesize($filePath) < 500) {
+                        // Fallback mysqldump biasa
+                        $dumpCmdMysql = "docker exec {$dbContainer} mysqldump --all-databases -u {$dbUser} -p{$dbPass} 2>/dev/null > " . escapeshellarg($filePath);
+                        shell_exec($dumpCmdMysql);
+                    }
                     if (file_exists($filePath) && filesize($filePath) > 500) {
                         $dumpSuccess = true;
                     }
                 }
 
                 if (!$dumpSuccess) {
-                    $projTitle = ucwords(str_replace(['-', '_'], ' ', $projSlug));
-                    @file_put_contents($filePath, "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projSlug}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n");
+                    $projTitle = ucwords(str_replace(['-', '_'], ' ', $projFolder));
+                    @file_put_contents($filePath, "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projFolder}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n");
                 }
 
-                $created[] = "{$projSlug}/{$filename}";
+                $created[] = "{$projFolder}/{$filename}";
             }
 
-            // 3. Pemicu otomatis Nextcloud occ files:scan agar langsung muncul di Nextcloud HP/Web
+            // 3. Pemicu otomatis Nextcloud: Set hak akses www-data & jalankan occ files:scan
             if (file_exists('/var/run/docker.sock')) {
+                shell_exec("docker exec nextcloud_nas chown -R www-data:www-data \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
                 shell_exec("docker exec -u www-data nextcloud_nas php occ files:scan --path=\"/mss/files/Backup-Server\" 2>&1");
             }
 
             return $this->success([
                 'target_project' => $rawProject,
                 'created_files' => $created,
-            ], "Backup untuk proyek '{$rawProject}' berhasil dibuat di folder Nextcloud NAS!");
+            ], "Backup untuk proyek '{$rawProject}' berhasil disimpan di struktur folder Nextcloud NAS!");
 
         } catch (Throwable $e) {
             return $this->error('Terjadi error saat menjalankan backup: ' . $e->getMessage(), 500);

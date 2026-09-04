@@ -8,6 +8,8 @@ RUN apk add --no-cache \
     bash \
     curl \
     git \
+    docker-cli \
+    mariadb-client \
     libpng-dev \
     libxml2-dev \
     zip \

@@ -24,7 +24,7 @@ class _BackupModalState extends State<BackupModal> {
   late Future<BackupHistoryModel> _backupFuture;
   bool _isTriggering = false;
   String _selectedFilter = 'Semua';
-  List<String> _availableProjects = ['E-Aspira DPM'];
+  List<String> _availableProjects = ['E-Aspira', 'portofolio', 'Panel-MSS'];
 
   @override
   void initState() {
@@ -199,16 +199,17 @@ class _BackupModalState extends State<BackupModal> {
   }
 
   Color _getProjectBadgeColor(String project) {
-    switch (project.toLowerCase()) {
-      case 'e-aspira dpm':
-        return const Color(0xFF10B981);
-      case 'wordpress':
-        return const Color(0xFF38BDF8);
-      case 'nextcloud nas':
-        return const Color(0xFFA855F7);
-      default:
-        return const Color(0xFFF59E0B);
+    final lower = project.toLowerCase();
+    if (lower.contains('aspira')) {
+      return const Color(0xFF10B981);
+    } else if (lower.contains('portofolio') || lower.contains('portfolio') || lower.contains('wordpress')) {
+      return const Color(0xFF38BDF8);
+    } else if (lower.contains('panel') || lower.contains('mss')) {
+      return const Color(0xFFF59E0B);
+    } else if (lower.contains('nextcloud')) {
+      return const Color(0xFFA855F7);
     }
+    return const Color(0xFF06B6D4);
   }
 
   @override

@@ -87309,7 +87309,7 @@ A.aki.prototype={
 $0(){return this.a.d=!1},
 $S:0}
 A.or.prototype={
-ag(){return new A.DR(A.b(["E-Aspira DPM"],t.s))}}
+ag(){return new A.DR(A.b(["E-Aspira","portofolio","Panel-MSS"],t.s))}}
 A.a0m.prototype={
 $1(a){return new A.or(this.a,null)},
 $S:555}
@@ -87359,10 +87359,12 @@ break
 case 7:case 1:return A.O(q,r)
 case 2:return A.N(o.at(-1),r)}})
 return A.P($async$tt,r)},
-a7e(a){switch(a.toLowerCase()){case"e-aspira dpm":return B.E
-case"wordpress":return B.nd
-case"nextcloud nas":return B.Eu
-default:return B.dt}},
+a7e(a){var s=a.toLowerCase()
+if(B.c.u(s,"aspira"))return B.E
+else if(B.c.u(s,"portofolio")||B.c.u(s,"portfolio")||B.c.u(s,"wordpress"))return B.nd
+else if(B.c.u(s,"panel")||B.c.u(s,"mss"))return B.dt
+else if(B.c.u(s,"nextcloud"))return B.Eu
+return B.y},
 K(a){var s,r,q,p,o,n,m,l=this,k=null,j=A.bL(a,k,t.w).w,i=A.eT(A.bp(k,k,B.m,k,new A.b2(B.jn,k,k,A.aN(2),k,k,B.w),k,4,k,k,k,k,k,48),k,k),h=A.a9(31,B.y.q()>>>16&255,B.y.q()>>>8&255,B.y.q()&255),g=A.aN(12),f=t.p
 g=A.by(A.b([A.by(A.b([A.bp(k,B.oH,B.m,k,new A.b2(h,k,A.dw(A.a9(B.d.az(76.5),B.y.q()>>>16&255,B.y.q()>>>8&255,B.y.q()&255),1),g,k,k,B.w),k,k,k,k,B.o0,k,k,k),B.lL,A.cH(B.KU,B.ae,B.p,B.v)],f),B.u,B.p,B.v,0),A.LN(k,k,B.Ip,k,k,new A.akV(a),k,k,k)],f),B.u,B.bI,B.v,0)
 h=A.aN(14)
