@@ -9,7 +9,6 @@ import '../widgets/app_launcher_card.dart';
 import '../widgets/backup_modal.dart';
 import '../widgets/container_card.dart';
 import '../widgets/host_monitor_card.dart';
-import '../widgets/loading_shimmer.dart';
 import '../widgets/sidebar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -324,57 +323,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildErrorState() {
-    return Center(
-      child: Container(
-        width: 480,
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF1E293B)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_rounded,
-                size: 54, color: Color(0xFFF43F5E)),
-            const SizedBox(height: 16),
-            const Text(
-              'Gagal Menghubungi Backend Server',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
-                foregroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: _loadDashboardData,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Coba Lagi',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildMainContent() {
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +493,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           const SizedBox(height: 40),
         ],
-      ),
     );
   }
 
