@@ -392,18 +392,50 @@ class BackupController extends Controller
 
                 // Coba mariadb-dump / mysqldump langsung dari container database
                 $dumpSuccess = false;
-                $dbContainer = null;
-                $dbPass = 'mss_secret_pass';
+                $dbPass = 'mss_secret_pass'; // default fallback
                 $dbUser = 'root';
 
-                if (str_contains($slugFile, 'easpira')) {
-                    $dbContainer = $this->findRunningContainer('db-easpira') ?: ($this->findRunningContainer('easpira') ?: 'db-easpira');
-                    $dbPass = 'mss_secret_pass';
-                } elseif (str_contains($slugFile, 'panel') || str_contains($slugFile, 'mss')) {
-                    $dbContainer = $this->findRunningContainer('mss-db') ?: 'mss-db';
-                    $dbPass = env('DB_ROOT_PASSWORD', 'root_secret_pass');
-                } elseif (str_contains($slugFile, 'portofolio') || str_contains($slugFile, 'wordpress')) {
-                    $dbContainer = $this->findRunningContainer('db-wordpress') ?: ($this->findRunningContainer('wordpress') ?: 'db-wordpress');
+                // 1. Deteksi dinamis nama container
+                $dbContainer = $this->findRunningContainer("db-{$slugFile}") 
+                    ?: ($this->findRunningContainer("{$slugFile}-db") 
+                    ?: ($this->findRunningContainer($slugFile) 
+                    ?: null));
+
+                // 2. Fallback untuk proyek spesifik jika tidak ditemukan secara dinamis
+                if (!$dbContainer) {
+                    if (str_contains($slugFile, 'easpira')) {
+                        $dbContainer = $this->findRunningContainer('db-easpira') ?: ($this->findRunningContainer('easpira') ?: 'db-easpira');
+                    } elseif (str_contains($slugFile, 'panel') || str_contains($slugFile, 'mss')) {
+                        $dbContainer = $this->findRunningContainer('mss-db') ?: 'mss-db';
+                    } elseif (str_contains($slugFile, 'portofolio') || str_contains($slugFile, 'wordpress')) {
+                        $dbContainer = $this->findRunningContainer('db-wordpress') ?: ($this->findRunningContainer('wordpress') ?: 'db-wordpress');
+                    }
+                }
+
+                // 3. Kecerdasan Ekstra: Ekstrak password langsung dari konfigurasi Docker Container!
+                if ($dbContainer && file_exists('/var/run/docker.sock')) {
+                    $ch = curl_init("http://localhost/containers/{$dbContainer}/json");
+                    curl_setopt_array($ch, [
+                        CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 10,
+                    ]);
+                    $inspectJson = curl_exec($ch);
+                    curl_close($ch);
+                    
+                    if ($inspectJson) {
+                        $inspectData = json_decode($inspectJson, true);
+                        $envs = $inspectData['Config']['Env'] ?? [];
+                        foreach ($envs as $envStr) {
+                            if (str_starts_with($envStr, 'MYSQL_ROOT_PASSWORD=') || str_starts_with($envStr, 'MARIADB_ROOT_PASSWORD=')) {
+                                $parts = explode('=', $envStr, 2);
+                                if (isset($parts[1])) {
+                                    $dbPass = $parts[1];
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 if ($dbContainer) {

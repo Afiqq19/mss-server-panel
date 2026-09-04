@@ -10,6 +10,7 @@ import '../widgets/backup_modal.dart';
 import '../widgets/container_card.dart';
 import '../widgets/host_monitor_card.dart';
 import '../widgets/loading_shimmer.dart';
+import '../widgets/sidebar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -183,128 +184,143 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F1D),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        titleSpacing: 24,
-        title: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF10B981).withOpacity(0.3),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  'assets/images/mss_logo.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'MSS SERVER PANEL',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                'v1.0.0',
-                style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          // Backup E-Aspira Drawer Trigger (Bab 9.B)
-          TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF3B82F6),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-            ),
-            onPressed: () => BackupModal.show(context, api),
-            icon: const Icon(Icons.backup_rounded, size: 18),
-            label: const Text(
-              'Backup NAS',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+      body: Row(
+        children: [
+          // Sidebar Samping Kiri
+          Sidebar(
+            currentRoute: '/dashboard',
+            onNavigate: (route) {
+              // For now we don't have routing, but this lays the foundation
+            },
           ),
-          const SizedBox(width: 8),
-
-          // Refresh Button
-          IconButton(
-            tooltip: 'Segarkan data sekarang',
-            onPressed: _isRefreshing ? null : _refreshDataQuietly,
-            icon: _isRefreshing
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF06B6D4),
+          
+          // Konten Utama Kanan
+          Expanded(
+            child: Column(
+              children: [
+                // Top Header Bar
+                Container(
+                  height: 70,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF0F172A),
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFF1E293B), width: 1.5),
                     ),
-                  )
-                : const Icon(Icons.refresh_rounded, color: Color(0xFF94A3B8)),
-          ),
-          const SizedBox(width: 8),
-
-          // User Chip & Logout
-          if (api.user != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.account_circle_rounded,
-                      size: 18, color: Color(0xFF06B6D4)),
-                  const SizedBox(width: 6),
-                  Text(
-                    api.user!.name,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Breadcrumb or Title
+                      Row(
+                        children: [
+                          const Text(
+                            'Dashboard',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'v1.0.0',
+                              style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      // Actions
+                      Row(
+                        children: [
+                          // Backup E-Aspira Drawer Trigger (Bab 9.B)
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF3B82F6),
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () => BackupModal.show(context, api),
+                            icon: const Icon(Icons.backup_rounded, size: 18),
+                            label: const Text(
+                              'Backup NAS',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          if (_isRefreshing)
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF10B981),
+                              ),
+                            )
+                          else
+                            IconButton(
+                              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B), size: 20),
+                              onPressed: () {
+                                _loadDashboardData();
+                              },
+                              tooltip: 'Refresh Dashboard',
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Scrollable Content
+                Expanded(
+                  child: _isLoadingInitial
+                      ? const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)))
+                      : _errorMessage != null
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: Color(0xFFF43F5E), size: 48),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Gagal memuat data:\n$_errorMessage',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Color(0xFFCBD5E1)),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _loadDashboardData,
+                                    child: const Text('Coba Lagi'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : RefreshIndicator(
+                              onRefresh: () async => _loadDashboardData(),
+                              color: const Color(0xFF10B981),
+                              backgroundColor: const Color(0xFF1E293B),
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(32.0),
+                                child: _buildMainContent(),
+                              ),
+                            ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-          ],
-
-          IconButton(
-            tooltip: 'Logout',
-            onPressed: () => api.logout(),
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFFF43F5E)),
           ),
-          const SizedBox(width: 16),
         ],
       ),
-      body: _isLoadingInitial
-          ? const DashboardShimmerLoading()
-          : _errorMessage != null
-              ? _buildErrorState()
-              : _buildMainContent(),
     );
   }
 
@@ -360,9 +376,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildMainContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Host Server Monitor Card (Bab 7.1)
