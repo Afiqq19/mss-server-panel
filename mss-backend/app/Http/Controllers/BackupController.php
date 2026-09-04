@@ -153,6 +153,108 @@ class BackupController extends Controller
     }
 
     /**
+     * Helper untuk mengeksekusi perintah di dalam Docker container via Unix Socket (/var/run/docker.sock)
+     * Bekerja 100% tanpa perlu binary docker-cli di dalam container PHP!
+     */
+    protected function dockerExec(string $container, array $cmd): ?string
+    {
+        // 1. Coba CLI docker jika tersedia
+        $cmdEscaped = implode(' ', array_map('escapeshellarg', $cmd));
+        $cliOutput = @shell_exec("docker exec {$container} {$cmdEscaped} 2>&1");
+        if ($cliOutput !== null && !str_contains($cliOutput, 'not found') && !str_contains($cliOutput, 'No such')) {
+            return $cliOutput;
+        }
+
+        // 2. Direct HTTP over Docker Unix Socket
+        if (!file_exists('/var/run/docker.sock')) {
+            return null;
+        }
+
+        $execPayload = json_encode([
+            'AttachStdout' => true,
+            'AttachStderr' => true,
+            'Tty' => true,
+            'Cmd' => $cmd,
+        ]);
+
+        $ch = curl_init("http://localhost/containers/{$container}/exec");
+        curl_setopt_array($ch, [
+            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $execPayload,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        if (!$response) {
+            return null;
+        }
+
+        $data = json_decode($response, true);
+        if (empty($data['Id'])) {
+            return null;
+        }
+
+        $execId = $data['Id'];
+        $startCh = curl_init("http://localhost/exec/{$execId}/start");
+        curl_setopt_array($startCh, [
+            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode(['Detach' => false, 'Tty' => true]),
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 180,
+        ]);
+        $output = curl_exec($startCh);
+        curl_close($startCh);
+
+        return $output;
+    }
+
+    /**
+     * Mencari nama container yang sedang aktif berdasarkan kata kunci
+     */
+    protected function findRunningContainer(string $keyword): ?string
+    {
+        if (!file_exists('/var/run/docker.sock')) {
+            return null;
+        }
+
+        $ch = curl_init("http://localhost/containers/json?all=1");
+        curl_setopt_array($ch, [
+            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        if (!$response) {
+            return null;
+        }
+
+        $containers = json_decode($response, true);
+        if (!is_array($containers)) {
+            return null;
+        }
+
+        foreach ($containers as $c) {
+            $names = $c['Names'] ?? [];
+            foreach ($names as $name) {
+                $cleanName = ltrim($name, '/');
+                if (stripos($cleanName, $keyword) !== false) {
+                    return $cleanName;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Menjalankan backup dinamis per-folder proyek dan auto-scan ke Nextcloud NAS
      */
     public function run(\Illuminate\Http\Request $request): JsonResponse
@@ -166,6 +268,9 @@ class BackupController extends Controller
             $storage = $this->getStoragePath();
             $date = date('Y-m-d_H-i-s');
             $created = [];
+
+            // Cari container Nextcloud secara otomatis
+            $nextcloudContainer = $this->findRunningContainer('nextcloud') ?: 'nextcloud_nas';
 
             // 1. Tentukan daftar folder proyek yang akan di-backup
             if (strtolower($rawProject) === 'all') {
@@ -201,17 +306,18 @@ class BackupController extends Controller
 
             // 2. Buat sub-folder terpisah dan backup untuk masing-masing proyek
             foreach ($projectsToBackup as $projFolder) {
-                // Buat folder via Nextcloud container jika docker socket aktif
-                if (file_exists('/var/run/docker.sock')) {
-                    shell_exec("docker exec nextcloud_nas mkdir -p \"/var/www/html/data/mss/files/Backup-Server/{$projFolder}\" 2>/dev/null");
-                    shell_exec("docker exec nextcloud_nas chown -R www-data:www-data \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
+                // Buat folder via Nextcloud container
+                if ($nextcloudContainer) {
+                    $this->dockerExec($nextcloudContainer, ['mkdir', '-p', "/var/www/html/data/mss/files/Backup-Server/{$projFolder}"]);
+                    $this->dockerExec($nextcloudContainer, ['chown', '-R', 'www-data:www-data', '/var/www/html/data/mss/files/Backup-Server']);
+                    $this->dockerExec($nextcloudContainer, ['chmod', '-R', '775', '/var/www/html/data/mss/files/Backup-Server']);
                 }
 
                 $projectFolder = rtrim($storage, '/') . '/' . $projFolder;
                 if (!is_dir($projectFolder)) {
                     @mkdir($projectFolder, 0777, true);
                     if (!is_dir($projectFolder)) {
-                        shell_exec("mkdir -p " . escapeshellarg($projectFolder) . " 2>/dev/null");
+                        @shell_exec("mkdir -p " . escapeshellarg($projectFolder) . " 2>/dev/null");
                     }
                 }
 
@@ -227,48 +333,56 @@ class BackupController extends Controller
                 $filename = "{$slugFile}_{$date}.sql";
                 $filePath = "{$projectFolder}/{$filename}";
 
-                // Coba mariadb-dump / mysqldump langsung dari container
+                // Coba mariadb-dump / mysqldump langsung dari container database
                 $dumpSuccess = false;
                 $dbContainer = null;
                 $dbPass = 'mss_secret_pass';
                 $dbUser = 'root';
 
                 if (str_contains($slugFile, 'easpira')) {
-                    $dbContainer = 'db-easpira';
+                    $dbContainer = $this->findRunningContainer('db-easpira') ?: ($this->findRunningContainer('easpira') ?: 'db-easpira');
                     $dbPass = 'mss_secret_pass';
                 } elseif (str_contains($slugFile, 'panel') || str_contains($slugFile, 'mss')) {
-                    $dbContainer = 'mss-db';
+                    $dbContainer = $this->findRunningContainer('mss-db') ?: 'mss-db';
                     $dbPass = env('DB_ROOT_PASSWORD', 'root_secret_pass');
                 } elseif (str_contains($slugFile, 'portofolio') || str_contains($slugFile, 'wordpress')) {
-                    // Coba cari container wordpress/portofolio aktif
-                    $dbContainer = 'db-wordpress';
+                    $dbContainer = $this->findRunningContainer('db-wordpress') ?: ($this->findRunningContainer('wordpress') ?: 'db-wordpress');
                 }
 
-                if ($dbContainer && file_exists('/var/run/docker.sock')) {
-                    $dumpCmd = "docker exec {$dbContainer} mariadb-dump --all-databases -u {$dbUser} -p{$dbPass} 2>/dev/null > " . escapeshellarg($filePath);
-                    shell_exec($dumpCmd);
-                    if (!file_exists($filePath) || filesize($filePath) < 500) {
-                        // Fallback mysqldump biasa
-                        $dumpCmdMysql = "docker exec {$dbContainer} mysqldump --all-databases -u {$dbUser} -p{$dbPass} 2>/dev/null > " . escapeshellarg($filePath);
-                        shell_exec($dumpCmdMysql);
+                if ($dbContainer) {
+                    $dumpOutput = $this->dockerExec($dbContainer, ['mariadb-dump', '--all-databases', "-u{$dbUser}", "-p{$dbPass}"]);
+                    if (empty($dumpOutput) || strlen($dumpOutput) < 500) {
+                        $dumpOutput = $this->dockerExec($dbContainer, ['mysqldump', '--all-databases', "-u{$dbUser}", "-p{$dbPass}"]);
                     }
-                    if (file_exists($filePath) && filesize($filePath) > 500) {
+
+                    if (!empty($dumpOutput) && strlen($dumpOutput) > 300) {
+                        @file_put_contents($filePath, $dumpOutput);
                         $dumpSuccess = true;
                     }
                 }
 
                 if (!$dumpSuccess) {
                     $projTitle = ucwords(str_replace(['-', '_'], ' ', $projFolder));
-                    @file_put_contents($filePath, "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projFolder}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n");
+                    $fallbackContent = "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projFolder}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n";
+                    @file_put_contents($filePath, $fallbackContent);
+                }
+
+                // Salin juga file ke dalam Nextcloud container langsung jika path Nextcloud berbeda
+                if ($nextcloudContainer && file_exists($filePath)) {
+                    $content = file_get_contents($filePath);
+                    $ncDest = "/var/www/html/data/mss/files/Backup-Server/{$projFolder}/{$filename}";
+                    $this->dockerExec($nextcloudContainer, ['sh', '-c', "echo " . escapeshellarg($content) . " > " . escapeshellarg($ncDest)]);
                 }
 
                 $created[] = "{$projFolder}/{$filename}";
             }
 
-            // 3. Pemicu otomatis Nextcloud: Set hak akses www-data & jalankan occ files:scan
-            if (file_exists('/var/run/docker.sock')) {
-                shell_exec("docker exec nextcloud_nas chown -R www-data:www-data \"/var/www/html/data/mss/files/Backup-Server\" 2>/dev/null");
-                shell_exec("docker exec -u www-data nextcloud_nas php occ files:scan --path=\"/mss/files/Backup-Server\" 2>&1");
+            // 3. Pemicu otomatis Nextcloud: Set hak akses & jalankan scan occ
+            if ($nextcloudContainer) {
+                $this->dockerExec($nextcloudContainer, ['chown', '-R', 'www-data:www-data', '/var/www/html/data/mss/files/Backup-Server']);
+                $this->dockerExec($nextcloudContainer, ['chmod', '-R', '775', '/var/www/html/data/mss/files/Backup-Server']);
+                $this->dockerExec($nextcloudContainer, ['su', '-s', '/bin/sh', 'www-data', '-c', 'php occ files:scan --path="/mss/files/Backup-Server"']);
+                $this->dockerExec($nextcloudContainer, ['su', '-s', '/bin/sh', 'www-data', '-c', 'php occ files:scan --all']);
             }
 
             return $this->success([
