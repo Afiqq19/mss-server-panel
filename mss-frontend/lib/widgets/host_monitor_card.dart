@@ -367,7 +367,28 @@ class HostMonitorCard extends StatelessWidget {
                   show: true,
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      interval: ((chartMaxY - chartMinY) / 4).clamp(1.0, 50.0) < 5 ? 5 : ((cpuHistory.length / 5).clamp(1.0, 10.0)),
+                      getTitlesWidget: (value, meta) {
+                        if (value == meta.min || value == meta.max) return const SizedBox();
+                        int secondsAgo = ((cpuHistory.length - 1 - value) * 10).toInt();
+                        if (secondsAgo <= 0) return const SizedBox();
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            '-${secondsAgo}s',
+                            style: const TextStyle(
+                              color: Color(0xFF475569),
+                              fontSize: 9,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,

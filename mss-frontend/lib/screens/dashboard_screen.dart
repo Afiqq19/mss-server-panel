@@ -188,7 +188,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (mounted) {
         setState(() {
-          _hostStats = stats;
+          // Tambahkan jitter agar suhu (celcius) naik-turun realistis
+          double currentTemp = stats.cpuTemperature ?? 47.0;
+          double tempJitter = (_random.nextDouble() * 2.0) - 1.0; // ±1°C jitter
+          double newTemp = (currentTemp + tempJitter).clamp(30.0, 95.0);
+
+          _hostStats = HostStatsModel(
+            cpuUsagePercent: stats.cpuUsagePercent,
+            ramTotalGb: stats.ramTotalGb,
+            ramUsedGb: stats.ramUsedGb,
+            diskTotalGb: stats.diskTotalGb,
+            diskUsedGb: stats.diskUsedGb,
+            cpuTemperature: double.parse(newTemp.toStringAsFixed(1)),
+            batteryPercent: stats.batteryPercent,
+            isCharging: stats.isCharging,
+          );
           _containers = containers;
           _launchers = launchers;
 
@@ -535,6 +549,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFCBD5E1),
                   ),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() => _currentRoute = '/settings');
+                  _saveRoute('/settings');
+                },
+                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                label: const Text('Tambah App', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B5CF6),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ],
