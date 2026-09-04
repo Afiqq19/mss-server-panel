@@ -51,52 +51,63 @@ class BackupController extends Controller
         try {
             $files = [];
             $lastBackup = null;
-            $storage = $this->getStoragePath();
             $discoveredProjects = [];
-
-            if (is_dir($storage)) {
-                $allEntries = glob(rtrim($storage, '/') . '/*');
-                $validExtensions = ['sql', 'gz', 'zip', 'tar'];
-                $rawFiles = [];
-
-                foreach ($allEntries as $entry) {
-                    if (is_file($entry)) {
-                        $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
-                        if (in_array($ext, $validExtensions, true)) {
-                            $rawFiles[] = $entry;
-                        }
-                    } elseif (is_dir($entry)) {
-                        $subFiles = glob($entry . '/*');
-                        foreach ($subFiles as $sub) {
-                            if (is_file($sub)) {
-                                $ext = strtolower(pathinfo($sub, PATHINFO_EXTENSION));
-                                if (in_array($ext, $validExtensions, true)) {
-                                    $rawFiles[] = $sub;
-                                }
-                            }
+            
+            // 1. Cari container Nextcloud
+            $nextcloudContainer = $this->findRunningContainer('nextcloud') ?: 'nextcloud_nas';
+            
+            $nextcloudOutput = null;
+            if ($nextcloudContainer) {
+                // Ambil daftar folder untuk deteksi proyek yang kosong
+                $folderCmd = ['sh', '-c', 'find /var/www/html/data/mss/files/Backup-Server -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null'];
+                $folderOutput = $this->dockerExec($nextcloudContainer, $folderCmd);
+                if (!empty($folderOutput)) {
+                    $dirs = array_filter(explode("\n", str_replace("\r", "", $folderOutput)));
+                    foreach ($dirs as $d) {
+                        $d = trim($d);
+                        if (!empty($d) && !in_array($d, $discoveredProjects, true)) {
+                            $discoveredProjects[] = $d;
                         }
                     }
                 }
-
+                
+                // Ambil semua file backup beserta ukuran dan timestamp
+                $cmd = ['sh', '-c', 'find /var/www/html/data/mss/files/Backup-Server -type f \( -name "*.sql" -o -name "*.gz" -o -name "*.zip" \) -exec stat -c "%n|%s|%Y" {} + 2>/dev/null'];
+                $nextcloudOutput = $this->dockerExec($nextcloudContainer, $cmd);
+            }
+            
+            if (!empty($nextcloudOutput) && !str_contains($nextcloudOutput, 'No such file') && !str_contains($nextcloudOutput, 'cannot access')) {
+                // Berhasil baca langsung dari Nextcloud!
+                $lines = array_filter(explode("\n", str_replace("\r", "", $nextcloudOutput)));
+                $rawFiles = [];
+                
+                foreach ($lines as $line) {
+                    $parts = explode('|', trim($line));
+                    if (count($parts) >= 3) {
+                        $rawFiles[] = [
+                            'path' => $parts[0],
+                            'bytes' => (int)$parts[1],
+                            'time' => (int)$parts[2]
+                        ];
+                    }
+                }
+                
                 // Urutkan dari yang terbaru
                 usort($rawFiles, function ($a, $b) {
-                    return filemtime($b) - filemtime($a);
+                    return $b['time'] - $a['time'];
                 });
-
-                foreach ($rawFiles as $filePath) {
-                    $fileTime = filemtime($filePath);
-                    $formattedTime = Carbon::createFromTimestamp($fileTime)->format('Y-m-d H:i:s');
-                    $bytes = filesize($filePath);
-                    $sizeMb = $bytes > 0 ? round($bytes / (1024 * 1024), 2) : 14.8;
+                
+                foreach ($rawFiles as $rf) {
+                    $formattedTime = Carbon::createFromTimestamp($rf['time'])->format('Y-m-d H:i:s');
+                    $sizeMb = $rf['bytes'] > 0 ? round($rf['bytes'] / (1024 * 1024), 2) : 14.8;
                     if ($sizeMb < 0.1) $sizeMb = 14.8;
-                    $filename = basename($filePath);
-
-                    // Deteksi nama proyek berdasarkan nama subfolder atau nama file
-                    $project = $this->detectProjectName($filePath, $storage);
+                    $filename = basename($rf['path']);
+                    
+                    $project = $this->detectProjectName($rf['path'], '/var/www/html/data/mss/files/Backup-Server');
                     if (!in_array($project, $discoveredProjects, true)) {
                         $discoveredProjects[] = $project;
                     }
-
+                    
                     $files[] = [
                         'filename' => $filename,
                         'project' => $project,
@@ -104,15 +115,63 @@ class BackupController extends Controller
                         'created_at' => $formattedTime,
                     ];
                 }
+            } else {
+                // FALLBACK KE LOKAL (Jika docker socket gagal atau Nextcloud tidak jalan)
+                $storage = $this->getStoragePath();
+                if (is_dir($storage)) {
+                    $allEntries = glob(rtrim($storage, '/') . '/*');
+                    $validExtensions = ['sql', 'gz', 'zip', 'tar'];
+                    $rawLocal = [];
 
-                if (!empty($files)) {
-                    $lastBackup = $files[0]['created_at'];
+                    foreach ($allEntries as $entry) {
+                        if (is_file($entry)) {
+                            $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+                            if (in_array($ext, $validExtensions, true)) $rawLocal[] = $entry;
+                        } elseif (is_dir($entry)) {
+                            $subFiles = glob($entry . '/*');
+                            foreach ($subFiles as $sub) {
+                                if (is_file($sub)) {
+                                    $ext = strtolower(pathinfo($sub, PATHINFO_EXTENSION));
+                                    if (in_array($ext, $validExtensions, true)) $rawLocal[] = $sub;
+                                }
+                            }
+                        }
+                    }
+
+                    usort($rawLocal, function ($a, $b) {
+                        return filemtime($b) - filemtime($a);
+                    });
+
+                    foreach ($rawLocal as $filePath) {
+                        $fileTime = filemtime($filePath);
+                        $formattedTime = Carbon::createFromTimestamp($fileTime)->format('Y-m-d H:i:s');
+                        $bytes = filesize($filePath);
+                        $sizeMb = $bytes > 0 ? round($bytes / (1024 * 1024), 2) : 14.8;
+                        if ($sizeMb < 0.1) $sizeMb = 14.8;
+                        $filename = basename($filePath);
+
+                        $project = $this->detectProjectName($filePath, $storage);
+                        if (!in_array($project, $discoveredProjects, true)) {
+                            $discoveredProjects[] = $project;
+                        }
+
+                        $files[] = [
+                            'filename' => $filename,
+                            'project' => $project,
+                            'size_mb' => $sizeMb,
+                            'created_at' => $formattedTime,
+                        ];
+                    }
                 }
             }
 
-            // Pastikan proyek minimal ada E-Aspira jika belum ada file
+            if (!empty($files)) {
+                $lastBackup = $files[0]['created_at'];
+            }
+
+            // Pastikan minimal ada proyek bawaan jika tidak ada folder sama sekali
             if (empty($discoveredProjects)) {
-                $discoveredProjects = ['E-Aspira DPM'];
+                $discoveredProjects = ['E-Aspira', 'portofolio', 'Panel-MSS'];
             }
 
             return $this->success([
