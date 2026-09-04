@@ -73,7 +73,7 @@ class HostMonitorCard extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              'Toshiba Satellite Linux VPS',
+                              'Toshiba Linux VPS',
                               style: TextStyle(
                                 fontSize: isNarrow ? 14 : 18,
                                 fontWeight: FontWeight.bold,

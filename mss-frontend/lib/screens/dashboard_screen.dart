@@ -370,20 +370,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 // Scrollable Content
                 Expanded(
-                  child: () {
-                    switch (_currentRoute) {
-                      case '/backup': return const BackupScreen();
-                      case '/containers': return const ContainersScreen();
-                      case '/network': return const NetworkScreen();
-                      case '/terminal': return const TerminalScreen();
-                      case '/settings': return const SettingsScreen();
-                      case '/dashboard':
-                      default:
-                        return _isLoadingInitial
-                                  ? const Center(
-                                      child: CircularProgressIndicator(color: Color(0xFF10B981)))
-                                  : _errorMessage != null
-                                      ? Center(
+                  child: IndexedStack(
+                    index: () {
+                      switch (_currentRoute) {
+                        case '/dashboard': return 0;
+                        case '/containers': return 1;
+                        case '/backup': return 2;
+                        case '/network': return 3;
+                        case '/terminal': return 4;
+                        case '/settings': return 5;
+                        default: return 0;
+                      }
+                    }(),
+                    children: [
+                      // 0: Dashboard
+                      _isLoadingInitial
+                          ? const Center(
+                              child: CircularProgressIndicator(color: Color(0xFF10B981)))
+                          : _errorMessage != null
+                              ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -411,9 +416,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     padding: const EdgeInsets.all(32.0),
                                     child: _buildMainContent(),
                                   ),
-                                );
-                    }
-                  }(),
+                                ),
+                      // 1: Containers
+                      const ContainersScreen(),
+                      // 2: Backup
+                      const BackupScreen(),
+                      // 3: Network
+                      const NetworkScreen(),
+                      // 4: Terminal
+                      const TerminalScreen(),
+                      // 5: Settings
+                      const SettingsScreen(),
+                    ],
+                  ),
                 ),
               ],
             ),

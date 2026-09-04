@@ -151,7 +151,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _result?['timestamp'] ?? 'Server Laptop Toshiba',
+                                      _result?['timestamp'] ?? 'Server Toshiba',
                                       style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                                     ),
                                   ],
