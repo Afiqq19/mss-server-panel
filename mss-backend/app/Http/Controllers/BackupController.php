@@ -98,7 +98,7 @@ class BackupController extends Controller
                 });
                 
                 foreach ($rawFiles as $rf) {
-                    $formattedTime = Carbon::createFromTimestamp($rf['time'])->format('Y-m-d H:i:s');
+                    $formattedTime = Carbon::createFromTimestamp($rf['time'])->timezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                     $sizeMb = $rf['bytes'] > 0 ? round($rf['bytes'] / (1024 * 1024), 3) : 0;
                     $filename = basename($rf['path']);
                     
@@ -143,7 +143,7 @@ class BackupController extends Controller
 
                     foreach ($rawLocal as $filePath) {
                         $fileTime = filemtime($filePath);
-                        $formattedTime = Carbon::createFromTimestamp($fileTime)->format('Y-m-d H:i:s');
+                        $formattedTime = Carbon::createFromTimestamp($fileTime)->timezone('Asia/Jakarta')->format('Y-m-d H:i:s');
                         $bytes = filesize($filePath);
                         $sizeMb = $bytes > 0 ? round($bytes / (1024 * 1024), 3) : 0;
                         $filename = basename($filePath);
@@ -360,7 +360,7 @@ class BackupController extends Controller
             }
 
             $storage = $this->getStoragePath();
-            $date = date('Y-m-d_H-i-s');
+            $date = Carbon::now()->timezone('Asia/Jakarta')->format('Y-m-d_H-i-s');
             $created = [];
 
             // Cari container Nextcloud secara otomatis
@@ -489,7 +489,7 @@ class BackupController extends Controller
 
                 if (!$dumpSuccess) {
                     $projTitle = ucwords(str_replace(['-', '_'], ' ', $projFolder));
-                    $fallbackContent = "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projFolder}/\n-- Tanggal Backup: " . date('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n";
+                    $fallbackContent = "-- =============================================\n-- Backup Database Proyek: {$projTitle}\n-- Disimpan di Nextcloud NAS Folder: {$projFolder}/\n-- Tanggal Backup: " . Carbon::now()->timezone('Asia/Jakarta')->format('Y-m-d H:i:s') . "\n-- MSS Server Panel Auto-Backup Engine\n-- =============================================\n";
                     @file_put_contents($filePath, $fallbackContent);
                 }
 
