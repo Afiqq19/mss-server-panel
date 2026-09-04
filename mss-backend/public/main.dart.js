@@ -87968,7 +87968,7 @@ A.anv.prototype={
 $0(){return this.a.at=!1},
 $S:0}
 A.anB.prototype={
-$1(a){var s=null,r=a==="/dashboard"||a==="/backup"||a==="/containers"||a==="/network",q=this.b
+$1(a){var s=null,r=a==="/dashboard"||a==="/backup"||a==="/containers"||a==="/network"||a==="/terminal"||a==="/settings",q=this.b
 if(r){r=this.a
 r.U(new A.anA(r,a))
 r.ny(a)
@@ -87979,7 +87979,7 @@ $0(){return this.a.r=this.b},
 $S:0}
 A.anC.prototype={
 $1(a){var s,r=null
-if(a==="/dashboard"||a==="/backup"||a==="/containers"||a==="/network"){s=this.a
+if(a==="/dashboard"||a==="/backup"||a==="/containers"||a==="/network"||a==="/terminal"||a==="/settings"){s=this.a
 s.U(new A.anz(s,a))
 s.ny(a)}else this.b.ac(t.Pu).f.jg(A.j6(r,r,r,B.S,B.bP,B.F,r,A.av("Menu "+a+u.c,r,r,r,r,r,r),r,B.bV,r,r,r,r,r,r,new A.bS(A.an(10),B.q),r,r))},
 $S:71}
