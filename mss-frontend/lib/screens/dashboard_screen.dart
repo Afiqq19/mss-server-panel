@@ -189,7 +189,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Sidebar(
             currentRoute: '/dashboard',
             onNavigate: (route) {
-              // For now we don't have routing, but this lays the foundation
+              if (route != '/dashboard') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Menu $route masih dalam tahap pengembangan (Coming Soon)!'),
+                    backgroundColor: const Color(0xFF3B82F6),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                );
+              }
             },
           ),
           

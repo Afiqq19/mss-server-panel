@@ -32,18 +32,26 @@ class Sidebar extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
-                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF10B981).withOpacity(0.3),
+                        blurRadius: 8,
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.terminal_rounded,
-                    color: Color(0xFF10B981),
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/images/mss_logo.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.broken_image, color: Colors.white, size: 20);
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
