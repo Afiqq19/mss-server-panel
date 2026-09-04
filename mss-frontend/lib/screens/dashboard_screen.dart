@@ -358,9 +358,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           if (!isDesktop) ...[
                             IconButton(
-                              icon: const Icon(Icons.menu, color: Colors.white),
+                              icon: Icon(_currentRoute == '/terminal' ? Icons.arrow_back : Icons.menu, color: Colors.white),
                               onPressed: () {
-                                _scaffoldKey.currentState?.openDrawer();
+                                if (_currentRoute == '/terminal') {
+                                  setState(() => _currentRoute = '/dashboard');
+                                  _saveRoute('/dashboard');
+                                } else {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                }
                               },
                             ),
                             const SizedBox(width: 8),

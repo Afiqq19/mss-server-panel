@@ -376,10 +376,20 @@ class HostMonitorCard extends StatelessWidget {
                         if (value == meta.min || value == meta.max) return const SizedBox();
                         int secondsAgo = ((cpuHistory.length - 1 - value) * 10).toInt();
                         if (secondsAgo <= 0) return const SizedBox();
+                        
+                        String label;
+                        if (secondsAgo < 60) {
+                          label = '${secondsAgo}s lalu';
+                        } else {
+                          int min = secondsAgo ~/ 60;
+                          int sec = secondsAgo % 60;
+                          label = sec == 0 ? '${min}m lalu' : '${min}m ${sec}s';
+                        }
+                        
                         return Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
-                            '-${secondsAgo}s',
+                            label,
                             style: const TextStyle(
                               color: Color(0xFF475569),
                               fontSize: 9,
