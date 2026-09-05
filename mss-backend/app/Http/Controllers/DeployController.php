@@ -100,6 +100,11 @@ class DeployController extends Controller
         $cleanMigrate = htmlspecialchars(trim((string)$migrate) ?: 'Tidak ada migrasi baru.');
         $cleanSeed = htmlspecialchars(trim((string)$seed) ?: 'Akun admin siap.');
         $cleanCache = htmlspecialchars(trim((string)$optimize) ?: 'Cache dibersihkan.');
+        
+        // Ambil versi saat ini dari frontend
+        $settingsContent = @file_get_contents($repoDir . '/mss-frontend/lib/screens/settings_screen.dart');
+        preg_match("/'v(\d+\.\d+\.\d+(?:\s*\([^)]+\))?)'/", (string)$settingsContent, $matches);
+        $currentVersion = !empty($matches[0]) ? str_replace("'", "", $matches[0]) : 'v1.0.4 (Beta)';
 
         return response("
         <!DOCTYPE html>
@@ -136,17 +141,20 @@ class DeployController extends Controller
                     </div>
 
                     <div class='terminal'>
-                        <div class='section-title'>[1/4] GIT PULL TERBARU:</div>
+                        <div class='section-title'>[1/5] GIT PULL TERBARU:</div>
                         {$cleanGit}
 
-                        <div class='section-title'>[2/4] MIGRASI & SEED AKUN ADMIN:</div>
+                        <div class='section-title'>[2/5] MIGRASI & SEED AKUN ADMIN:</div>
                         {$cleanMigrate}
                         {$cleanSeed}
 
-                        <div class='section-title'>[3/4] SINKRONISASI BUNDLE WEB FLUTTER:</div>
+                        <div class='section-title'>[3/5] SINKRONISASI BUNDLE WEB FLUTTER:</div>
                         Bundle web berhasil disalin ke mss-frontend/build/web! (Tidak perlu scp manual lagi 🚀)
 
-                        <div class='section-title'>[4/4] BERSIHKAN CACHE & OPTIMASI:</div>
+                        <div class='section-title'>[4/5] INFO VERSI TERBARU:</div>
+                        Aplikasi telah diupdate dan disinkronkan ke versi <b>{$currentVersion}</b>!
+
+                        <div class='section-title'>[5/5] BERSIHKAN CACHE & OPTIMASI:</div>
                         {$cleanCache}
                     </div>
 
