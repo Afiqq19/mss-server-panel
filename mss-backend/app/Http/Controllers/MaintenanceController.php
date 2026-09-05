@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Traits\ApiResponse;
+use App\Traits\HostCommand;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +11,7 @@ use Throwable;
 
 class MaintenanceController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, HostCommand;
 
     /**
      * Daftar task maintenance yang tersedia
@@ -91,21 +92,15 @@ class MaintenanceController extends Controller
 
         try {
             $command = $commands[$taskId];
-            $output = '';
-            $exitCode = 0;
+            $output = $this->runHostCommand($command);
 
-            exec($command, $outputLines, $exitCode);
-            $output = implode("\n", $outputLines);
-
-            if ($exitCode !== 0) {
-                Log::warning("Maintenance task {$taskId} exited with code {$exitCode}: {$output}");
+            if ($output === null) {
+                return $this->error('Gagal terhubung ke host shell via Docker socket.', 500);
             }
 
             return $this->success([
-                'task_id' => $taskId,
-                'output' => $output,
-                'exit_code' => $exitCode,
-            ], "Task '{$taskId}' berhasil dijalankan.");
+                'output' => $output
+            ], 'Task maintenance berhasil dijalankan');
 
         } catch (Throwable $e) {
             Log::error("Maintenance task error: " . $e->getMessage());
