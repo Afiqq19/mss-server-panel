@@ -410,7 +410,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
-                              'v1.0.0',
+                              'v1.0.4 (Beta)',
                               style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
                             ),
                           ),

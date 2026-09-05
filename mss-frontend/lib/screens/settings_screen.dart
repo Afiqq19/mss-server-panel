@@ -969,7 +969,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       description: 'Informasi tentang versi dan teknologi yang digunakan oleh MSS Server Panel.',
       child: Column(
         children: [
-          _buildInfoRow('MSS Panel Version', 'v1.0.3 (Beta)'),
+          _buildInfoRow('MSS Panel Version', 'v1.0.4 (Beta)'),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(color: Color(0xFF1E293B), height: 1),
