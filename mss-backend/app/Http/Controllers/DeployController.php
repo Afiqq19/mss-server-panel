@@ -101,10 +101,10 @@ class DeployController extends Controller
         $cleanSeed = htmlspecialchars(trim((string)$seed) ?: 'Akun admin siap.');
         $cleanCache = htmlspecialchars(trim((string)$optimize) ?: 'Cache dibersihkan.');
         
-        // Ambil versi saat ini dari frontend
-        $settingsContent = @file_get_contents($repoDir . '/mss-frontend/lib/screens/settings_screen.dart');
-        preg_match("/'v(\d+\.\d+\.\d+(?:\s*\([^)]+\))?)'/", (string)$settingsContent, $matches);
-        $currentVersion = !empty($matches[0]) ? str_replace("'", "", $matches[0]) : 'v1.0.4 (Beta)';
+        // Ambil versi saat ini dari pubspec.yaml
+        $pubspecContent = @file_get_contents($repoDir . '/mss-frontend/pubspec.yaml');
+        preg_match("/^version:\s*([^\s]+)/m", (string)$pubspecContent, $matches);
+        $currentVersion = !empty($matches[1]) ? 'v' . $matches[1] : 'vUnknown';
 
         return response("
         <!DOCTYPE html>
