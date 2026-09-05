@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Portainer Config Controllers
   final _portainerUrlController = TextEditingController(text: 'https://portainer.xie.my.id');
-  final _portainerApiKeyController = TextEditingController(ptr_/For91NXCWIC2XT4ptN7kJo4QXRLrYAz1SpIJ0V2D7A=);
+  final _portainerApiKeyController = TextEditingController(text: 'ptr_/For91NXCWIC2XT4ptN7kJo4QXRLrYAz1SpIJ0V2D7A=');
   final _portainerEndpointIdController = TextEditingController(text: '3');
 
   bool _isSavingAccount = false;
