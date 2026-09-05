@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DeployController;
 use App\Http\Controllers\HostStatsController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PortainerController;
 use App\Http\Controllers\SettingsController;
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/containers', [PortainerController::class, 'index']);
     Route::post('/containers/{id}/{action}', [PortainerController::class, 'action'])
         ->where('action', 'start|stop|restart');
+    Route::get('/containers/{id}/logs', [PortainerController::class, 'logs']);
 
     // Nextcloud NAS SQL Backup Module (Bab 9.B)
     Route::get('/backups', [BackupController::class, 'index']);
@@ -54,4 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // App Launcher Shortcuts (Bab 4, 7)
     Route::apiResource('app-launchers', AppLauncherController::class);
+
+    // System Maintenance & Cleaner
+    Route::get('/maintenance', [MaintenanceController::class, 'index']);
+    Route::post('/maintenance/execute', [MaintenanceController::class, 'execute']);
 });
+

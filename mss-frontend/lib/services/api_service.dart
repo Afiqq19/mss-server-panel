@@ -417,4 +417,65 @@ class ApiService extends ChangeNotifier {
       throw Exception(data['message'] ?? 'Gagal update konfigurasi');
     }
   }
+
+  // =================================================================
+  // CONTAINER LOGS
+  // =================================================================
+  Future<String> getContainerLogs(String id, {int tail = 100}) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/containers/$id/logs?tail=$tail'), headers: _headers)
+          .timeout(const Duration(seconds: 15));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        return data['data']?['logs'] ?? 'No logs available';
+      }
+      return data['message'] ?? 'Gagal mengambil log';
+    } catch (e) {
+      debugPrint('getContainerLogs error: $e');
+      return 'Error: $e';
+    }
+  }
+
+  // =================================================================
+  // SYSTEM MAINTENANCE
+  // =================================================================
+  Future<List<Map<String, dynamic>>> fetchMaintenanceTasks() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/maintenance'), headers: _headers)
+          .timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        final list = data['data'] as List? ?? [];
+        return list.map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+    } catch (e) {
+      debugPrint('fetchMaintenanceTasks error: $e');
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> executeMaintenanceTask(String taskId) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/maintenance/execute'),
+            headers: _headers,
+            body: jsonEncode({'task_id': taskId}),
+          )
+          .timeout(const Duration(seconds: 120));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        return Map<String, dynamic>.from(data['data'] ?? {});
+      } else {
+        throw Exception(data['message'] ?? 'Gagal menjalankan maintenance task');
+      }
+    } catch (e) {
+      throw Exception('Maintenance error: $e');
+    }
+  }
 }

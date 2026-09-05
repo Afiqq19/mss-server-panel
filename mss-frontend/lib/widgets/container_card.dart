@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/container_model.dart';
+import 'container_log_dialog.dart';
 
 class ContainerCard extends StatefulWidget {
   final ContainerModel container;
@@ -258,6 +259,30 @@ class _ContainerCardState extends State<ContainerCard> {
                             ),
                           ),
                         if (isRunning) ...[
+                          // Logs Button
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF06B6D4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              backgroundColor:
+                                  const Color(0xFF06B6D4).withOpacity(0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const Icon(Icons.notes, size: 18),
+                            label: const Text('Logs'),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => ContainerLogDialog(container: widget.container),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Start / Stop Button
                           Expanded(
                             child: _buildActionButton(
                               label: 'Restart',

@@ -151,4 +151,63 @@ class PortainerController extends Controller
 
         return false;
     }
+
+    /**
+     * Mengambil log dari container Docker via Portainer (Live Container Logs)
+     */
+    public function logs(string $id, Request $request): JsonResponse
+    {
+        if (!$this->isPortainerReachable()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Portainer unreachable: service offline',
+                'data' => ['logs' => '']
+            ], 200);
+        }
+
+        try {
+            $tail = $request->query('tail', 100);
+
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'X-API-Key' => $this->apiKey,
+                ])
+                ->timeout(10)
+                ->get("{$this->baseUrl}/api/endpoints/{$this->endpointId}/docker/containers/{$id}/logs", [
+                    'stdout' => 1,
+                    'stderr' => 1,
+                    'tail' => $tail,
+                    'timestamps' => 1,
+                ]);
+
+            if (!$response->successful()) {
+                throw new \Exception("Gagal mengambil log container: Status {$response->status()}");
+            }
+
+            // Clean up Docker log stream header bytes (first 8 bytes per line)
+            $rawLogs = $response->body();
+            $lines = explode("\n", $rawLogs);
+            $cleanedLines = [];
+            foreach ($lines as $line) {
+                // Docker stream protocol: first 8 bytes are header, strip them
+                if (strlen($line) > 8) {
+                    $cleanedLines[] = substr($line, 8);
+                } elseif (!empty(trim($line))) {
+                    $cleanedLines[] = $line;
+                }
+            }
+
+            return $this->success([
+                'container_id' => $id,
+                'logs' => implode("\n", $cleanedLines),
+            ], 'Log container berhasil diambil');
+
+        } catch (Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil log: ' . $e->getMessage(),
+                'data' => ['logs' => '']
+            ], 200);
+        }
+    }
 }

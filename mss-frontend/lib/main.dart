@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'providers/theme_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/update_screen.dart';
@@ -12,6 +13,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ApiService()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const MssServerPanelApp(),
     ),
@@ -23,23 +25,24 @@ class MssServerPanelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp(
       title: 'MSS Server Panel',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF030712), // Deeper rich dark
-        primaryColor: const Color(0xFF06B6D4),
+        scaffoldBackgroundColor: const Color(0xFF030712),
+        primaryColor: themeProvider.primary,
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme).apply(
           bodyColor: Colors.white,
           displayColor: Colors.white,
         ),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF06B6D4),
-          secondary: Color(0xFF3B82F6),
-          surface: Color(0xFF0F172A),
-          error: Color(0xFFF43F5E),
+        colorScheme: ColorScheme.dark(
+          primary: themeProvider.primary,
+          secondary: themeProvider.secondary,
+          surface: const Color(0xFF0F172A),
+          error: const Color(0xFFF43F5E),
         ),
         cardTheme: CardThemeData(
           color: const Color(0xFF0F172A),

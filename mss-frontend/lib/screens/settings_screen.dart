@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_launcher_model.dart';
 import '../services/api_service.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -537,6 +538,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: MediaQuery.of(context).size.width < 550 ? MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width < 600 ? 32 : 64) : 480,
                 child: Column(
                   children: [
+                    _buildAppearanceCard(),
+                    const SizedBox(height: 24),
                     _buildSystemActionsCard(),
                     const SizedBox(height: 24),
                     _buildAboutCard(),
@@ -794,6 +797,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // APPEARANCE CARD
+  // ==========================================
+  Widget _buildAppearanceCard() {
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    return _buildSettingsSection(
+      title: 'Appearance (Theme)',
+      icon: Icons.palette,
+      color: themeProvider.primary,
+      description: 'Ubah warna aksen utama panel. Perubahan otomatis tersimpan.',
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: ThemeProvider.availableThemes.map((theme) {
+          final isSelected = themeProvider.currentThemeId == theme.id;
+          return GestureDetector(
+            onTap: () => themeProvider.setTheme(theme.id),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? theme.primary.withOpacity(0.2) : const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? theme.primary : const Color(0xFF1E293B),
+                  width: isSelected ? 2 : 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: theme.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        if (isSelected)
+                          BoxShadow(color: theme.glow, blurRadius: 8)
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    theme.name,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

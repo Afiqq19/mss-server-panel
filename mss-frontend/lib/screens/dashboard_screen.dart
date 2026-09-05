@@ -17,6 +17,7 @@ import 'containers_screen.dart';
 import 'network_screen.dart';
 import 'terminal_screen.dart';
 import 'settings_screen.dart';
+import 'maintenance_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -294,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Sidebar(
                 currentRoute: _currentRoute,
                 onNavigate: (route) {
-                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings') {
+                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings' || route == '/maintenance') {
                     setState(() => _currentRoute = route);
                     _saveRoute(route);
                     Navigator.pop(context); // Close drawer
@@ -327,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Sidebar(
               currentRoute: _currentRoute,
               onNavigate: (route) {
-                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings') {
+                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings' || route == '/maintenance') {
                   setState(() => _currentRoute = route);
                   _saveRoute(route);
                 } else {
@@ -390,6 +391,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 case '/network': return 'Network Monitoring';
                                 case '/terminal': return 'Web Terminal (Root)';
                                 case '/settings': return 'Settings & Konfigurasi';
+                                case '/maintenance': return 'System Maintenance';
                                 case '/dashboard':
                                 default: return 'Dashboard';
                               }
@@ -457,6 +459,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         case '/network': return 3;
                         case '/terminal': return 4;
                         case '/settings': return 5;
+                        case '/maintenance': return 6;
                         default: return 0;
                       }
                     }(),
@@ -505,6 +508,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const TerminalScreen(),
                       // 5: Settings
                       const SettingsScreen(),
+                      // 6: Maintenance
+                      const MaintenanceScreen(),
                     ],
                   ),
                 ),
