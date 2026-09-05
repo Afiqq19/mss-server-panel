@@ -17,15 +17,15 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   String _activeTask = '';
   Map<String, String> _taskOutputs = {};
 
-  // Hardcoded icon mapping - icon langsung di-reference di Dart
-  // agar tree-shaker pasti menyertakannya di build
+  // Hardcoded icon mapping - hanya pakai icon yang SUDAH TERBUKTI muncul
+  // di bagian lain app (sidebar, dashboard, settings) agar pasti ter-include
   static final Map<String, IconData> _iconMap = {
-    'apt_clean': Icons.delete_outline,
-    'apt_autoremove': Icons.delete_sweep,
-    'docker_prune': Icons.layers_clear,
-    'clear_journal': Icons.article_outlined,
-    'clear_tmp': Icons.snippet_folder,
-    'system_update': Icons.update,
+    'apt_clean': Icons.delete_sweep,        // sudah terbukti muncul
+    'apt_autoremove': Icons.layers_clear,    // sudah terbukti muncul
+    'docker_prune': Icons.storage,           // dari sidebar/dashboard
+    'clear_journal': Icons.terminal,         // dari sidebar
+    'clear_tmp': Icons.delete,              // icon dasar pasti ada
+    'system_update': Icons.settings,         // dari sidebar
   };
 
   // Fallback tasks kalau API timeout
@@ -147,7 +147,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                   color: themeProvider.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.handyman, color: themeProvider.primary, size: 24),
+                child: Icon(Icons.settings, color: themeProvider.primary, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
