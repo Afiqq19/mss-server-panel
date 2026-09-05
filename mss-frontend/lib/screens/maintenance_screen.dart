@@ -17,6 +17,27 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   String _activeTask = '';
   Map<String, String> _taskOutputs = {};
 
+  // Hardcoded icon mapping - icon langsung di-reference di Dart
+  // agar tree-shaker pasti menyertakannya di build
+  static final Map<String, IconData> _iconMap = {
+    'apt_clean': Icons.delete_outline,
+    'apt_autoremove': Icons.delete_sweep,
+    'docker_prune': Icons.layers_clear,
+    'clear_journal': Icons.article_outlined,
+    'clear_tmp': Icons.snippet_folder,
+    'system_update': Icons.update,
+  };
+
+  // Fallback tasks kalau API timeout
+  static final List<Map<String, dynamic>> _fallbackTasks = [
+    {'id': 'apt_clean', 'name': 'Bersihkan Cache APT', 'description': 'Menghapus file cache paket apt yang tidak diperlukan (apt-get clean)', 'danger': false},
+    {'id': 'apt_autoremove', 'name': 'Hapus Paket Tidak Digunakan', 'description': 'Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)', 'danger': false},
+    {'id': 'docker_prune', 'name': 'Bersihkan Docker (Prune)', 'description': 'Menghapus image, container, volume, dan network Docker yang tidak terpakai', 'danger': true},
+    {'id': 'clear_journal', 'name': 'Bersihkan System Log', 'description': 'Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)', 'danger': false},
+    {'id': 'clear_tmp', 'name': 'Bersihkan /tmp', 'description': 'Menghapus file sementara di folder /tmp yang lebih dari 7 hari', 'danger': false},
+    {'id': 'system_update', 'name': 'Update Sistem (apt upgrade)', 'description': 'Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS', 'danger': true},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -30,13 +51,16 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
       final tasks = await api.fetchMaintenanceTasks();
       if (mounted) {
         setState(() {
-          _tasks = tasks;
+          _tasks = tasks.isNotEmpty ? tasks : _fallbackTasks;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _tasks = _fallbackTasks;
+          _isLoading = false;
+        });
       }
     }
   }
@@ -102,16 +126,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
     }
   }
 
-  IconData _getIcon(String name) {
-    switch (name) {
-      case 'cleaning_services': return Icons.cleaning_services;
-      case 'delete_sweep': return Icons.delete_sweep;
-      case 'layers_clear': return Icons.layers_clear;
-      case 'receipt_long': return Icons.receipt_long;
-      case 'folder_delete': return Icons.folder_delete;
-      case 'system_update': return Icons.system_update;
-      default: return Icons.build;
-    }
+  IconData _getIcon(String taskId) {
+    return _iconMap[taskId] ?? Icons.settings;
   }
 
   @override
@@ -131,7 +147,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                   color: themeProvider.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.build_circle, color: themeProvider.primary, size: 24),
+                child: Icon(Icons.handyman, color: themeProvider.primary, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -176,7 +192,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
     final String name = task['name'];
     final String description = task['description'];
     final bool isDanger = task['danger'] == true;
-    final IconData icon = _getIcon(task['icon']);
+    final IconData icon = _getIcon(id);
     final bool isRunning = _activeTask == id;
     final String? output = _taskOutputs[id];
 

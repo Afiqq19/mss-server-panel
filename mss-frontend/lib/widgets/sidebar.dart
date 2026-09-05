@@ -145,7 +145,7 @@ class Sidebar extends StatelessWidget {
                 _buildMenuItem(
                   title: 'Maintenance',
                   iconWidget: Icon(
-                    Icons.build_circle,
+                    Icons.handyman,
                     size: 20,
                     color: currentRoute == '/maintenance' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
                   ),
