@@ -93,6 +93,7 @@ class Sidebar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _buildMenuItem(
+                  context,
                   title: 'Dashboard',
                   iconWidget: Icon(
                     Icons.dashboard,
@@ -102,6 +103,7 @@ class Sidebar extends StatelessWidget {
                   route: '/dashboard',
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Containers',
                   iconWidget: Icon(
                     Icons.data_object,
@@ -111,6 +113,7 @@ class Sidebar extends StatelessWidget {
                   route: '/containers',
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Storage & Backup',
                   iconWidget: Icon(
                     Icons.cloud_sync,
@@ -121,6 +124,7 @@ class Sidebar extends StatelessWidget {
                   badge: 'Auto',
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Network',
                   iconWidget: Icon(
                     Icons.router,
@@ -143,6 +147,7 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Maintenance',
                   iconWidget: Icon(
                     Icons.settings,
@@ -152,6 +157,7 @@ class Sidebar extends StatelessWidget {
                   route: '/maintenance',
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Web Terminal',
                   iconWidget: Icon(
                     Icons.terminal,
@@ -161,6 +167,7 @@ class Sidebar extends StatelessWidget {
                   route: '/terminal',
                 ),
                 _buildMenuItem(
+                  context,
                   title: 'Settings',
                   iconWidget: Icon(
                     Icons.settings,
@@ -192,8 +199,8 @@ class Sidebar extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         'Administrator',
                         style: TextStyle(
                           color: Colors.white,
@@ -204,7 +211,7 @@ class Sidebar extends StatelessWidget {
                       Text(
                         'Root Access',
                         style: TextStyle(
-                          color: Color(0xFF64748B),
+                          color: Theme.of(context).primaryColor,
                           fontSize: 11,
                         ),
                       ),
@@ -225,7 +232,8 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildMenuItem(
+    BuildContext context, {
     required String title,
     required Widget iconWidget,
     required String route,
@@ -279,7 +287,7 @@ class Sidebar extends StatelessWidget {
                     ),
                     child: Text(
                       badge,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,

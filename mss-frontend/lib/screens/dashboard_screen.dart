@@ -466,7 +466,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       // 0: Dashboard
                       _isLoadingInitial
-                          ? const Center(
+                          ? Center(
                               child: CircularProgressIndicator(color: Theme.of(context).primaryColor))
                           : _errorMessage != null
                               ? Center(
@@ -640,7 +640,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Theme.of(context).primaryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.view_in_ar,
+                child: Icon(Icons.view_in_ar,
                     size: 20, color: Theme.of(context).primaryColor),
               ),
               const SizedBox(width: 12),
@@ -666,13 +666,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        '${_containers.where((c) => c.isRunning).length} / ${_containers.length} RUNNING',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_containers.where((c) => c.isRunning).length} / ${_containers.length} RUNNING',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
