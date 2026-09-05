@@ -24,7 +24,7 @@ trait HostCommand
         // Kita bind mount seluruh filesystem host ke /host_fs agar bisa manipulasi file host
         $payload = json_encode([
             'Image' => 'alpine:latest',
-            'Cmd' => ['sh', '-c', "chroot /host_fs sh -c " . escapeshellarg($cmd)],
+            'Cmd' => ['sh', '-c', "chroot /host_fs /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c " . escapeshellarg($cmd)],
             'HostConfig' => [
                 'NetworkMode' => 'host',
                 'AutoRemove' => false,
@@ -93,7 +93,7 @@ trait HostCommand
         
         $payload = json_encode([
             'Image' => 'ubuntu:latest', // Menggunakan ubuntu karena server pasti punya ubuntu base image
-            'Cmd' => ['sh', '-c', "chroot /host_fs sh -c " . escapeshellarg($cmd)],
+            'Cmd' => ['sh', '-c', "chroot /host_fs /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c " . escapeshellarg($cmd)],
             'HostConfig' => [
                 'NetworkMode' => 'host',
                 'AutoRemove' => false,
