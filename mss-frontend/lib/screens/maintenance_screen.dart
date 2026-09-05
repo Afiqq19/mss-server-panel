@@ -158,10 +158,13 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           else if (_tasks.isEmpty)
             const Center(child: Text('Tidak ada task maintenance tersedia.', style: TextStyle(color: Colors.white)))
           else
-            Wrap(
-              spacing: 24,
-              runSpacing: 24,
-              children: _tasks.map((task) => _buildTaskCard(task, themeProvider)).toList(),
+            Center(
+              child: Wrap(
+                spacing: 24,
+                runSpacing: 24,
+                alignment: WrapAlignment.center,
+                children: _tasks.map((task) => _buildTaskCard(task, themeProvider)).toList(),
+              ),
             ),
         ],
       ),
