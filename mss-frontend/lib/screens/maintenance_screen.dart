@@ -17,52 +17,20 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   String _activeTask = '';
   Map<String, String> _taskOutputs = {};
 
-  // Hardcoded icon mapping - hanya pakai icon yang SUDAH TERBUKTI muncul
-  // di bagian lain app (sidebar, dashboard, settings) agar pasti ter-include
-  static final Map<String, IconData> _iconMap = {
-    'apt_clean': Icons.delete_sweep,        // sudah terbukti muncul
-    'apt_autoremove': Icons.layers_clear,    // sudah terbukti muncul
-    'docker_prune': Icons.storage,           // dari sidebar/dashboard
-    'clear_journal': Icons.terminal,         // dari sidebar
-    'clear_tmp': Icons.delete,              // icon dasar pasti ada
-    'system_update': Icons.settings,         // dari sidebar
-  };
-
-  // Fallback tasks kalau API timeout
-  static final List<Map<String, dynamic>> _fallbackTasks = [
-    {'id': 'apt_clean', 'name': 'Bersihkan Cache APT', 'description': 'Menghapus file cache paket apt yang tidak diperlukan (apt-get clean)', 'danger': false},
-    {'id': 'apt_autoremove', 'name': 'Hapus Paket Tidak Digunakan', 'description': 'Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)', 'danger': false},
-    {'id': 'docker_prune', 'name': 'Bersihkan Docker (Prune)', 'description': 'Menghapus image, container, volume, dan network Docker yang tidak terpakai', 'danger': true},
-    {'id': 'clear_journal', 'name': 'Bersihkan System Log', 'description': 'Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)', 'danger': false},
-    {'id': 'clear_tmp', 'name': 'Bersihkan /tmp', 'description': 'Menghapus file sementara di folder /tmp yang lebih dari 7 hari', 'danger': false},
-    {'id': 'system_update', 'name': 'Update Sistem (apt upgrade)', 'description': 'Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS', 'danger': true},
-  ];
-
   @override
   void initState() {
     super.initState();
-    _loadTasks();
-  }
-
-  Future<void> _loadTasks() async {
-    setState(() => _isLoading = true);
-    try {
-      final api = Provider.of<ApiService>(context, listen: false);
-      final tasks = await api.fetchMaintenanceTasks();
-      if (mounted) {
-        setState(() {
-          _tasks = tasks.isNotEmpty ? tasks : _fallbackTasks;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _tasks = _fallbackTasks;
-          _isLoading = false;
-        });
-      }
-    }
+    // Langsung pakai data hardcoded - tidak perlu fetch API untuk daftar task
+    // karena daftar task sudah fixed. API hanya dipakai untuk EXECUTE task.
+    _tasks = [
+      {'id': 'apt_clean', 'name': 'Bersihkan Cache APT', 'description': 'Menghapus file cache paket apt yang tidak diperlukan (apt-get clean)', 'danger': false, 'icon': Icons.delete_sweep},
+      {'id': 'apt_autoremove', 'name': 'Hapus Paket Tidak Digunakan', 'description': 'Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)', 'danger': false, 'icon': Icons.layers_clear},
+      {'id': 'docker_prune', 'name': 'Bersihkan Docker (Prune)', 'description': 'Menghapus image, container, volume, dan network Docker yang tidak terpakai', 'danger': true, 'icon': Icons.storage},
+      {'id': 'clear_journal', 'name': 'Bersihkan System Log', 'description': 'Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)', 'danger': false, 'icon': Icons.terminal},
+      {'id': 'clear_tmp', 'name': 'Bersihkan /tmp', 'description': 'Menghapus file sementara di folder /tmp yang lebih dari 7 hari', 'danger': false, 'icon': Icons.delete},
+      {'id': 'system_update', 'name': 'Update Sistem (apt upgrade)', 'description': 'Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS', 'danger': true, 'icon': Icons.settings},
+    ];
+    _isLoading = false;
   }
 
   Future<void> _executeTask(String taskId, String taskName, bool isDanger) async {
@@ -124,10 +92,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         _activeTask = '';
       });
     }
-  }
-
-  IconData _getIcon(String taskId) {
-    return _iconMap[taskId] ?? Icons.settings;
   }
 
   @override
@@ -192,7 +156,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
     final String name = task['name'];
     final String description = task['description'];
     final bool isDanger = task['danger'] == true;
-    final IconData icon = _getIcon(id);
+    final IconData icon = task['icon'] ?? Icons.settings;
     final bool isRunning = _activeTask == id;
     final String? output = _taskOutputs[id];
 
