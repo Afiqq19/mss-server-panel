@@ -133,6 +133,26 @@ class Sidebar extends StatelessWidget {
                   ),
                   route: '/network',
                 ),
+                _buildMenuItem(
+                  context,
+                  title: 'App Installer',
+                  iconWidget: Icon(
+                    Icons.rocket_launch,
+                    size: 20,
+                    color: currentRoute == '/installer' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                  ),
+                  route: '/installer',
+                ),
+                _buildMenuItem(
+                  context,
+                  title: 'Cron Jobs',
+                  iconWidget: Icon(
+                    Icons.schedule,
+                    size: 20,
+                    color: currentRoute == '/cron' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                  ),
+                  route: '/cron',
+                ),
                 const SizedBox(height: 24),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -145,6 +165,36 @@ class Sidebar extends StatelessWidget {
                       letterSpacing: 1.5,
                     ),
                   ),
+                ),
+                _buildMenuItem(
+                  context,
+                  title: 'Security / Firewall',
+                  iconWidget: Icon(
+                    Icons.security,
+                    size: 20,
+                    color: currentRoute == '/security' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                  ),
+                  route: '/security',
+                ),
+                _buildMenuItem(
+                  context,
+                  title: 'Services & Processes',
+                  iconWidget: Icon(
+                    Icons.memory,
+                    size: 20,
+                    color: currentRoute == '/services' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                  ),
+                  route: '/services',
+                ),
+                _buildMenuItem(
+                  context,
+                  title: 'System Logs',
+                  iconWidget: Icon(
+                    Icons.receipt_long,
+                    size: 20,
+                    color: currentRoute == '/logs' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                  ),
+                  route: '/logs',
                 ),
                 _buildMenuItem(
                   context,

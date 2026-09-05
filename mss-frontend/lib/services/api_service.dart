@@ -69,6 +69,35 @@ class ApiService extends ChangeNotifier {
   }
 
   // =================================================================
+  // GENERIC HTTP METHODS
+  // =================================================================
+  Future<Map<String, dynamic>> get(String endpoint) async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl$endpoint'), headers: _headers)
+        .timeout(const Duration(seconds: 15));
+    final data = jsonDecode(response.body);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Terjadi kesalahan jaringan.');
+  }
+
+  Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl$endpoint'),
+          headers: _headers,
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+    final data = jsonDecode(response.body);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Terjadi kesalahan jaringan.');
+  }
+
+  // =================================================================
   // AUTHENTICATION (Bab 5)
   // =================================================================
   Future<bool> login(String email, String password) async {

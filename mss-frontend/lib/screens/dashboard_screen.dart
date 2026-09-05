@@ -12,12 +12,18 @@ import '../widgets/container_card.dart';
 import '../widgets/host_monitor_card.dart';
 import '../widgets/sidebar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'backup_screen.dart';
 import 'containers_screen.dart';
 import 'network_screen.dart';
 import 'terminal_screen.dart';
 import 'settings_screen.dart';
 import 'maintenance_screen.dart';
+import 'security_screen.dart';
+import 'services_screen.dart';
+import 'logs_screen.dart';
+import 'cron_screen.dart';
+import 'app_installer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -43,10 +49,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingInitial = true;
   bool _isRefreshing = false;
   String? _errorMessage;
+  String _appVersion = '-';
 
   @override
   void initState() {
     super.initState();
+    _initPackageInfo();
     _seedCpuHistory();
     _loadSavedRoute();
     _updateClock();
@@ -58,9 +66,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Auto refresh data every 10 seconds (Bab 7 real-time monitoring)
     _periodicTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) {
-        _refreshDataQuietly();
+        _loadDashboardData();
       }
     });
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = 'v${info.version}';
+      });
+    }
   }
 
   /// Generate realistic initial CPU history with natural-looking peaks & valleys
@@ -78,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadSavedRoute() async {
     final prefs = await SharedPreferences.getInstance();
     final savedRoute = prefs.getString('mss_last_route');
-    if (savedRoute != null && ['/dashboard', '/backup', '/containers', '/network'].contains(savedRoute)) {
+    if (savedRoute != null && ['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(savedRoute)) {
       if (mounted) {
         setState(() {
           _currentRoute = savedRoute;
@@ -328,7 +345,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Sidebar(
               currentRoute: _currentRoute,
               onNavigate: (route) {
-                if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings' || route == '/maintenance') {
+                if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(route)) {
                   setState(() => _currentRoute = route);
                   _saveRoute(route);
                 } else {
@@ -409,9 +426,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: const Color(0xFF1E293B),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'v1.0.4 (Beta)',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            child: Text(
+                              _appVersion,
+                              style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
                             ),
                           ),
                         ],
@@ -460,6 +477,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         case '/terminal': return 4;
                         case '/settings': return 5;
                         case '/maintenance': return 6;
+                        case '/security': return 7;
+                        case '/services': return 8;
+                        case '/logs': return 9;
+                        case '/cron': return 10;
+                        case '/installer': return 11;
                         default: return 0;
                       }
                     }(),
@@ -510,6 +532,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SettingsScreen(),
                       // 6: Maintenance
                       const MaintenanceScreen(),
+                      // 7: Security
+                      const SecurityScreen(),
+                      // 8: Services
+                      const ServicesScreen(),
+                      // 9: Logs
+                      const LogsScreen(),
+                      // 10: Cron Jobs
+                      const CronScreen(),
+                      // 11: App Installer
+                      const AppInstallerScreen(),
                     ],
                   ),
                 ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/app_launcher_model.dart';
 import '../services/api_service.dart';
 import '../providers/theme_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -32,11 +33,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // App Launcher Management
   List<AppLauncherModel> _launchers = [];
   bool _isLoadingLaunchers = true;
+  String _appVersion = 'v1.0.6';
 
   @override
   void initState() {
     super.initState();
+    _initPackageInfo();
     _loadLaunchers();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = 'v${info.version}';
+      });
+    }
   }
 
   @override
@@ -969,7 +981,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       description: 'Informasi tentang versi dan teknologi yang digunakan oleh MSS Server Panel.',
       child: Column(
         children: [
-          _buildInfoRow('MSS Panel Version', 'v1.0.4 (Beta)'),
+          _buildInfoRow('MSS Panel Version', _appVersion),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(color: Color(0xFF1E293B), height: 1),
