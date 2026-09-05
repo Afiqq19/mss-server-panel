@@ -93385,7 +93385,7 @@ az(){var s,r
 this.aM()
 s=t.N
 r=t.z
-this.d=A.b([A.an(["id","apt_clean","name","Bersihkan Cache APT","description","Menghapus file cache paket apt yang tidak diperlukan (apt-get clean)","danger",!1,"icon",B.pX],s,r),A.an(["id","apt_autoremove","name","Hapus Paket Tidak Digunakan","description","Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)","danger",!1,"icon",B.q_],s,r),A.an(["id","docker_prune","name","Bersihkan Docker (Prune)","description","Menghapus image, container, volume, dan network Docker yang tidak terpakai","danger",!0,"icon",B.iz],s,r),A.an(["id","clear_journal","name","Bersihkan System Log","description","Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)","danger",!1,"icon",B.iA],s,r),A.an(["id","clear_tmp","name","Bersihkan /tmp","description","Menghapus file sementara di folder /tmp yang lebih dari 7 hari","danger",!1,"icon",B.Ke],s,r),A.an(["id","system_update","name","Update Sistem (apt upgrade)","description","Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS","danger",!0,"icon",B.et],s,r)],t.H7)
+this.d=A.b([A.an(["id","apt_clean","name","Bersihkan Cache APT","description","Menghapus file cache paket apt yang tidak diperlukan (apt-get clean)","danger",!1,"icon",B.pX],s,r),A.an(["id","apt_autoremove","name","Hapus Paket Tidak Digunakan","description","Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)","danger",!1,"icon",B.q_],s,r),A.an(["id","docker_prune","name","Bersihkan Docker (Prune)","description","Menghapus image, container, volume, dan network Docker yang tidak terpakai","danger",!0,"icon",B.iz],s,r),A.an(["id","clear_journal","name","Bersihkan System Log","description","Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)","danger",!1,"icon",B.iA],s,r),A.an(["id","clear_tmp","name","Bersihkan /tmp","description","Menghapus file sementara di folder /tmp yang lebih dari 7 hari","danger",!1,"icon",B.Kk],s,r),A.an(["id","system_update","name","Update Sistem (apt upgrade)","description","Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS","danger",!0,"icon",B.et],s,r)],t.H7)
 this.e=!1},
 tP(a,b,c){return this.a9K(a,b,c)},
 a9K(a,b,c){var s=0,r=A.K(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g
@@ -93992,7 +93992,7 @@ $1(a){var s=this
 return new A.td(new A.ayR(s.a,s.b,s.c,s.d,s.e,s.f,s.r,s.w,s.x),null)},
 $S:600}
 A.ayR.prototype={
-$2(a0,a1){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.a5(16),c=f.c,b=A.d3(c?B.Ki:B.K1,B.ae,e,22),a=t.p
+$2(a0,a1){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.a5(16),c=f.c,b=A.d3(c?B.Kh:B.K1,B.ae,e,22),a=t.p
 b=A.b2(A.b([b,B.d8,A.ak(c?"Edit App Launcher":"Tambah App Launcher Baru",e,e,e,B.a_X,e,e)],a),B.p,B.k,B.m,0,e)
 s=f.b
 r=f.d
@@ -94000,7 +94000,7 @@ q=s.Ek(r,"Nama Aplikasi",B.Ko,"contoh: Portainer")
 p=f.e
 o=s.Ek(p,"URL / Link",B.lB,"https://...")
 n=f.f
-m=s.Ek(n,"Deskripsi (opsional)",B.Kh,"Keterangan singkat")
+m=s.Ek(n,"Deskripsi (opsional)",B.Kg,"Keterangan singkat")
 l=f.r
 k=f.a
 j=A.X(l).h("a2<1,kL>")
@@ -100543,11 +100543,11 @@ B.K6=new A.aH(57556,"MaterialIcons",!1)
 B.pV=new A.aH(57699,"MaterialIcons",!1)
 B.pW=new A.aH(57712,"MaterialIcons",!1)
 B.Kd=new A.aH(57777,"MaterialIcons",!1)
-B.Ke=new A.aH(57785,"MaterialIcons",!1)
 B.pX=new A.aH(57788,"MaterialIcons",!1)
-B.Kh=new A.aH(57791,"MaterialIcons",!1)
+B.Kg=new A.aH(57791,"MaterialIcons",!1)
 B.d2=new A.aH(57829,"MaterialIcons",!1)
-B.Ki=new A.aH(57882,"MaterialIcons",!1)
+B.Kh=new A.aH(57882,"MaterialIcons",!1)
+B.Kk=new A.aH(58019,"MaterialIcons",!1)
 B.Km=new A.aH(58123,"MaterialIcons",!0)
 B.Kn=new A.aH(58132,"MaterialIcons",!1)
 B.pY=new A.aH(58173,"MaterialIcons",!1)
@@ -100609,8 +100609,8 @@ B.Lc=new A.bw(B.q4,20,B.y,null,null)
 B.Ld=new A.bw(B.iA,null,B.u,null,null)
 B.Kc=new A.aH(57733,"MaterialIcons",!1)
 B.Le=new A.bw(B.Kc,14,B.an,null,null)
-B.Kg=new A.aH(57787,"MaterialIcons",!1)
-B.Lg=new A.bw(B.Kg,18,B.C,null,null)
+B.Kf=new A.aH(57787,"MaterialIcons",!1)
+B.Lg=new A.bw(B.Kf,18,B.C,null,null)
 B.KN=new A.aH(58966,"MaterialIcons",!1)
 B.Lh=new A.bw(B.KN,18,B.cW,null,null)
 B.iy=new A.aH(58291,"MaterialIcons",!1)
@@ -100635,11 +100635,11 @@ B.Lu=new A.bw(B.K4,18,null,null,null)
 B.Lw=new A.bw(B.lA,54,B.ee,null,null)
 B.K0=new A.aH(57415,"MaterialIcons",!1)
 B.q8=new A.bw(B.K0,16,B.e,null,null)
-B.Kk=new A.aH(57911,"MaterialIcons",!1)
-B.Lx=new A.bw(B.Kk,48,B.C,null,null)
+B.Kj=new A.aH(57911,"MaterialIcons",!1)
+B.Lx=new A.bw(B.Kj,48,B.C,null,null)
 B.Ly=new A.bw(B.et,24,B.S,null,null)
-B.Kj=new A.aH(57898,"MaterialIcons",!1)
-B.Lz=new A.bw(B.Kj,null,B.u,null,null)
+B.Ki=new A.aH(57898,"MaterialIcons",!1)
+B.Lz=new A.bw(B.Ki,null,B.u,null,null)
 B.KI=new A.aH(58836,"MaterialIcons",!1)
 B.LA=new A.bw(B.KI,20,B.ae,null,null)
 B.KS=new A.aH(59115,"MaterialIcons",!1)
@@ -101008,8 +101008,8 @@ B.Lr=new A.bw(B.iA,20,B.y,null,null)
 B.bm=new A.cb(8,null,null,null)
 B.a15=new A.aS("Web Terminal (Interactive PTY)",null,B.dS,null,null,null,null,null,null)
 B.P6=s([B.Lr,B.bm,B.a15],t.p)
-B.Kf=new A.aH(57786,"MaterialIcons",!1)
-B.LP=new A.bw(B.Kf,22,B.C,null,null)
+B.Ke=new A.aH(57786,"MaterialIcons",!1)
+B.LP=new A.bw(B.Ke,22,B.C,null,null)
 B.a1s=new A.aS("Hapus App Launcher",null,B.c5,null,null,null,null,null,null)
 B.P8=s([B.LP,B.d8,B.a1s],t.p)
 B.iV=new A.h(0,2)

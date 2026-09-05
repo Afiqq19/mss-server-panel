@@ -27,7 +27,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
       {'id': 'apt_autoremove', 'name': 'Hapus Paket Tidak Digunakan', 'description': 'Menghapus paket dependensi yang tidak lagi diperlukan (apt-get autoremove -y)', 'danger': false, 'icon': Icons.layers_clear},
       {'id': 'docker_prune', 'name': 'Bersihkan Docker (Prune)', 'description': 'Menghapus image, container, volume, dan network Docker yang tidak terpakai', 'danger': true, 'icon': Icons.storage},
       {'id': 'clear_journal', 'name': 'Bersihkan System Log', 'description': 'Menghapus journal systemd yang lebih dari 3 hari (journalctl --vacuum-time=3d)', 'danger': false, 'icon': Icons.terminal},
-      {'id': 'clear_tmp', 'name': 'Bersihkan /tmp', 'description': 'Menghapus file sementara di folder /tmp yang lebih dari 7 hari', 'danger': false, 'icon': Icons.delete},
+      {'id': 'clear_tmp', 'name': 'Bersihkan /tmp', 'description': 'Menghapus file sementara di folder /tmp yang lebih dari 7 hari', 'danger': false, 'icon': Icons.folder},
       {'id': 'system_update', 'name': 'Update Sistem (apt upgrade)', 'description': 'Menjalankan apt-get update && apt-get upgrade -y untuk memperbarui seluruh paket OS', 'danger': true, 'icon': Icons.settings},
     ];
     _isLoading = false;

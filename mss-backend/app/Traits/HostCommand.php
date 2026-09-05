@@ -92,11 +92,14 @@ trait HostCommand
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         
         $payload = json_encode([
-            'Image' => 'nginx:alpine',
-            'Cmd' => ['sh', '-c', $cmd],
+            'Image' => 'ubuntu:latest', // Menggunakan ubuntu karena server pasti punya ubuntu base image
+            'Cmd' => ['sh', '-c', "chroot /host_fs sh -c " . escapeshellarg($cmd)],
             'HostConfig' => [
                 'NetworkMode' => 'host',
                 'AutoRemove' => false,
+                'Binds' => [
+                    '/:/host_fs'
+                ]
             ]
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -110,19 +113,33 @@ trait HostCommand
         $id = $container['Id'] ?? null;
         if (!$id) return null;
 
-        curl_exec(curl_init("http://localhost/containers/$id/start"));
-        curl_exec(curl_init("http://localhost/containers/$id/wait"));
+        $chStart = curl_init("http://localhost/containers/$id/start");
+        curl_setopt($chStart, CURLOPT_UNIX_SOCKET_PATH, $socket);
+        curl_setopt($chStart, CURLOPT_POST, true);
+        curl_setopt($chStart, CURLOPT_RETURNTRANSFER, true);
+        curl_exec($chStart);
+        curl_close($chStart);
+
+        $chWait = curl_init("http://localhost/containers/$id/wait");
+        curl_setopt($chWait, CURLOPT_UNIX_SOCKET_PATH, $socket);
+        curl_setopt($chWait, CURLOPT_POST, true);
+        curl_setopt($chWait, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chWait, CURLOPT_TIMEOUT, 30);
+        curl_exec($chWait);
+        curl_close($chWait);
         
         $chLogs = curl_init("http://localhost/containers/$id/logs?stdout=true&stderr=true");
         curl_setopt($chLogs, CURLOPT_UNIX_SOCKET_PATH, $socket);
         curl_setopt($chLogs, CURLOPT_RETURNTRANSFER, true);
         $logsRaw = curl_exec($chLogs);
+        curl_close($chLogs);
         
         $chDel = curl_init("http://localhost/containers/$id?v=true&force=true");
         curl_setopt($chDel, CURLOPT_UNIX_SOCKET_PATH, $socket);
         curl_setopt($chDel, CURLOPT_CUSTOMREQUEST, "DELETE");
         curl_setopt($chDel, CURLOPT_RETURNTRANSFER, true);
         curl_exec($chDel);
+        curl_close($chDel);
 
         return $this->stripDockerStreamHeader($logsRaw);
     }
