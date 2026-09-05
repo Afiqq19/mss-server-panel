@@ -312,9 +312,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onLogout: _confirmLogout,
               ),
             ),
-      body: Row(
-        children: [
-          // Sidebar Samping Kiri (Desktop)
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF050B14), Color(0xFF0B1221), Color(0xFF030712)],
+          ),
+        ),
+        child: Row(
+          children: [
+            // Sidebar Samping Kiri (Desktop)
           if (isDesktop)
             Sidebar(
               currentRoute: _currentRoute,
@@ -504,6 +512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

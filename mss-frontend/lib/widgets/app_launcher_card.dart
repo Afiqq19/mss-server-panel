@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/app_launcher_model.dart';
@@ -75,29 +76,33 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: _launch,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF0F172A),
-                _isHovered ? color.withOpacity(0.05) : const Color(0xFF131C31),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _isHovered
-                  ? color.withOpacity(0.6)
-                  : const Color(0xFF1E293B),
-              width: _isHovered ? 1.5 : 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _isHovered
-                    ? color.withOpacity(0.25)
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.04),
+                    _isHovered ? color.withOpacity(0.1) : Colors.white.withOpacity(0.01),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isHovered
+                      ? color.withOpacity(0.6)
+                      : Colors.white.withOpacity(0.1),
+                  width: _isHovered ? 1.5 : 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: _isHovered
+                        ? color.withOpacity(0.25)
                     : Colors.black.withOpacity(0.3),
                 blurRadius: _isHovered ? 20 : 10,
                 offset: const Offset(0, 5),
@@ -187,6 +192,8 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
               ),
             ],
           ),
+        ),
+        ),
         ),
       ),
     );

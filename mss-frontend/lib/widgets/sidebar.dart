@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class Sidebar extends StatelessWidget {
@@ -14,18 +15,21 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 260,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
-        border: Border(
-          right: BorderSide(
-            color: Color(0xFF1E293B),
-            width: 1.5,
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: 260,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.02),
+            border: Border(
+              right: BorderSide(
+                color: Colors.white.withOpacity(0.1),
+                width: 1.0,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Column(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Logo Area
@@ -207,6 +211,8 @@ class Sidebar extends StatelessWidget {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 
