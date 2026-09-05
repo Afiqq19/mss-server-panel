@@ -262,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Aksi $action berhasil dikirim ke container #$id'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: Theme.of(context).primaryColor,
           ),
         );
         _refreshDataQuietly();
@@ -467,7 +467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 0: Dashboard
                       _isLoadingInitial
                           ? const Center(
-                              child: CircularProgressIndicator(color: Color(0xFF10B981)))
+                              child: CircularProgressIndicator(color: Theme.of(context).primaryColor))
                           : _errorMessage != null
                               ? Center(
                                   child: Column(
@@ -491,7 +491,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 )
                               : RefreshIndicator(
                                   onRefresh: () async => _loadDashboardData(),
-                                  color: const Color(0xFF10B981),
+                                  color: Theme.of(context).primaryColor,
                                   backgroundColor: const Color(0xFF1E293B),
                                   child: SingleChildScrollView(
                                     padding: EdgeInsets.all(MediaQuery.of(context).size.width < 768 ? 16.0 : 32.0),
@@ -637,11 +637,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.15),
+                  color: Theme.of(context).primaryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.view_in_ar,
-                    size: 20, color: Color(0xFF10B981)),
+                    size: 20, color: Theme.of(context).primaryColor),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -671,7 +671,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
                     ),

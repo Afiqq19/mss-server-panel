@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? const Color(0xFFF43F5E) : const Color(0xFF10B981),
+        backgroundColor: isError ? const Color(0xFFF43F5E) : Theme.of(context).primaryColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -332,7 +332,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           isActive ? 'Shortcut akan ditampilkan di Dashboard' : 'Shortcut disembunyikan',
                           style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
                         ),
-                        activeColor: const Color(0xFF10B981),
+                        activeColor: Theme.of(context).primaryColor,
                         contentPadding: EdgeInsets.zero,
                       ),
                     ],
@@ -700,7 +700,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _buildSettingsSection(
       title: 'Admin Account',
       icon: Icons.shield,
-      color: const Color(0xFF10B981),
+      color: Theme.of(context).primaryColor,
       description: 'Ubah username dan password administrator panel. Password saat ini wajib diisi untuk verifikasi.',
       child: Form(
         key: _accountFormKey,
@@ -737,7 +737,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ElevatedButton(
                 onPressed: _isSavingAccount ? null : _submitAccount,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: _isSavingAccount

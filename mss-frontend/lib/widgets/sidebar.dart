@@ -44,7 +44,7 @@ class Sidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withOpacity(0.3),
+                        color: Theme.of(context).primaryColor.withOpacity(0.3),
                         blurRadius: 8,
                       ),
                     ],
@@ -97,7 +97,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.dashboard,
                     size: 20,
-                    color: currentRoute == '/dashboard' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/dashboard' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/dashboard',
                 ),
@@ -106,7 +106,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.data_object,
                     size: 20,
-                    color: currentRoute == '/containers' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/containers' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/containers',
                 ),
@@ -115,7 +115,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.cloud_sync,
                     size: 20,
-                    color: currentRoute == '/backup' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/backup' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/backup',
                   badge: 'Auto',
@@ -125,7 +125,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.router,
                     size: 20,
-                    color: currentRoute == '/network' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/network' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/network',
                 ),
@@ -147,7 +147,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.settings,
                     size: 20,
-                    color: currentRoute == '/maintenance' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/maintenance' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/maintenance',
                 ),
@@ -156,7 +156,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.terminal,
                     size: 20,
-                    color: currentRoute == '/terminal' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/terminal' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/terminal',
                 ),
@@ -165,7 +165,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.settings,
                     size: 20,
-                    color: currentRoute == '/settings' ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+                    color: currentRoute == '/settings' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
                   ),
                   route: '/settings',
                 ),
@@ -246,14 +246,14 @@ class Sidebar extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           hoverColor: const Color(0xFF1E293B).withOpacity(0.8),
           highlightColor: const Color(0xFF1E293B).withOpacity(0.4),
-          splashColor: const Color(0xFF06B6D4).withOpacity(0.2),
+          splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF06B6D4).withOpacity(0.15) : Colors.transparent,
+              color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? const Color(0xFF06B6D4).withOpacity(0.4) : Colors.transparent,
+                color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.4) : Colors.transparent,
               ),
             ),
             child: Row(
@@ -274,13 +274,13 @@ class Sidebar extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
+                      color: Theme.of(context).primaryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       badge,
                       style: const TextStyle(
-                        color: Color(0xFF10B981),
+                        color: Theme.of(context).primaryColor,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
