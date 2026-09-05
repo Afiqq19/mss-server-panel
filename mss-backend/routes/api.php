@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public Authentication & Auto-Deploy Routes (Protected by secret key)
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
 Route::match(['get', 'post'], '/update-rahasia-panel', [DeployController::class, 'update']);
 Route::match(['get', 'post'], '/deploy-update', [DeployController::class, 'update']);
 
