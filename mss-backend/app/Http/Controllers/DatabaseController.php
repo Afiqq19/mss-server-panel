@@ -144,6 +144,23 @@ class DatabaseController extends Controller
         return trim($cleanOutput);
     }
 
+    private function resolveDbCommand(string $container, string $cmdType = 'client'): string
+    {
+        $testCmd = ['mysql', '--version'];
+        $res = $this->dockerExecDb($container, $testCmd);
+        
+        $hasMysql = true;
+        if (str_contains(strtolower($res ?? ''), 'executable file not found')) {
+            $hasMysql = false;
+        }
+
+        if ($cmdType === 'client') {
+            return $hasMysql ? 'mysql' : 'mariadb';
+        } else {
+            return $hasMysql ? 'mysqldump' : 'mariadb-dump';
+        }
+    }
+
     private function runQuery(string $query, string $db = '')
     {
         $container = null;
@@ -159,10 +176,11 @@ class DatabaseController extends Controller
         }
 
         $password = $this->getDbPassword($container);
+        $client = $this->resolveDbCommand($container, 'client');
         
-        $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', $query];
+        $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', $query];
         if ($db !== '') {
-            $cmd = ['mysql', '-u', 'root', "-p{$password}", $db, '-s', '-e', $query];
+            $cmd = [$client, '-u', 'root', "-p{$password}", $db, '-s', '-e', $query];
         }
         
         $result = $this->dockerExecDb($container, $cmd);
@@ -182,7 +200,8 @@ class DatabaseController extends Controller
 
             foreach ($containers as $c) {
                 $password = $this->getDbPassword($c);
-                $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
+                $client = $this->resolveDbCommand($c, 'client');
+                $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
                 $output = $this->dockerExecDb($c, $cmd);
                 
                 if ($output && !str_contains(strtolower($output), 'oci runtime') && !str_contains(strtolower($output), 'executable file not found') && !str_contains(strtolower($output), 'error ')) {
@@ -211,7 +230,8 @@ class DatabaseController extends Controller
             $container = $containers[0];
 
             $password = $this->getDbPassword($container);
-            $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', "CREATE DATABASE `{$request->name}`;"];
+            $client = $this->resolveDbCommand($container, 'client');
+            $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', "CREATE DATABASE `{$request->name}`;"];
             $this->dockerExecDb($container, $cmd);
 
             return $this->success([], "Database {$request->name} berhasil dibuat di container {$container}.");
@@ -266,8 +286,9 @@ class DatabaseController extends Controller
             $containers = $this->getAllDbContainers();
             $container = $containers[0];
             $password = $this->getDbPassword($container);
+            $client = $this->resolveDbCommand($container, 'client');
             
-            $cmd = ['mysql', '-u', 'root', "-p{$password}", '-t', '-e', $request->query];
+            $cmd = [$client, '-u', 'root', "-p{$password}", '-t', '-e', $request->query];
             $output = $this->dockerExecDb($container, $cmd);
             
             if (str_contains(strtolower($output ?? ''), 'error ')) {
@@ -296,8 +317,9 @@ class DatabaseController extends Controller
             }
 
             $password = $this->getDbPassword($container);
+            $dump = $this->resolveDbCommand($container, 'dump');
             
-            $cmd = ['mysqldump', '-u', 'root', "-p{$password}", $realDb];
+            $cmd = [$dump, '-u', 'root', "-p{$password}", $realDb];
             $sql = $this->dockerExecDb($container, $cmd);
             
             $filename = "{$realDb}_backup_" . date('Ymd_His') . ".sql";
