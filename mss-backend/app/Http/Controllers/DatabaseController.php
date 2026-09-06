@@ -11,7 +11,7 @@ class DatabaseController extends Controller
 {
     use ApiResponse, HostCommand;
 
-    private function getDbContainer(): string
+    private function getAllDbContainers(): array
     {
         if (!file_exists('/var/run/docker.sock')) {
             throw new \Exception("Docker socket not found on host.");
@@ -26,26 +26,39 @@ class DatabaseController extends Controller
         $response = curl_exec($ch);
         curl_close($ch);
 
+        $dbContainers = [];
         if ($response) {
             $containers = json_decode($response, true) ?? [];
             foreach ($containers as $c) {
                 $names = $c['Names'] ?? [];
                 $image = strtolower($c['Image'] ?? '');
                 
+                $matchedName = ltrim($names[0] ?? '', '/');
+                $isDb = false;
+
                 if (str_contains($image, 'mysql') || str_contains($image, 'mariadb')) {
-                    return ltrim($names[0] ?? '', '/');
+                    $isDb = true;
+                } else {
+                    foreach ($names as $name) {
+                        $n = strtolower(ltrim($name, '/'));
+                        if (str_contains($n, 'db') || str_contains($n, 'mysql') || str_contains($n, 'mariadb')) {
+                            $isDb = true;
+                            break;
+                        }
+                    }
                 }
 
-                foreach ($names as $name) {
-                    $name = strtolower(ltrim($name, '/'));
-                    if (str_contains($name, 'db') || str_contains($name, 'mysql') || str_contains($name, 'mariadb')) {
-                        return $name;
-                    }
+                if ($isDb) {
+                    $dbContainers[] = $matchedName;
                 }
             }
         }
         
-        throw new \Exception("Tidak ditemukan container database (MySQL/MariaDB) yang sedang berjalan.");
+        if (empty($dbContainers)) {
+            throw new \Exception("Tidak ditemukan container database (MySQL/MariaDB) yang sedang berjalan.");
+        }
+
+        return $dbContainers;
     }
 
     private function getDbPassword(string $container): string
@@ -133,7 +146,18 @@ class DatabaseController extends Controller
 
     private function runQuery(string $query, string $db = '')
     {
-        $container = $this->getDbContainer();
+        $container = null;
+        // Deteksi format [container_name] database_name
+        if ($db !== '' && preg_match('/^\[(.*?)\]\s+(.*)$/', $db, $matches)) {
+            $container = $matches[1];
+            $db = trim($matches[2]);
+        }
+
+        if (!$container) {
+            $containers = $this->getAllDbContainers();
+            $container = $containers[0];
+        }
+
         $password = $this->getDbPassword($container);
         
         $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', $query];
@@ -153,10 +177,26 @@ class DatabaseController extends Controller
     public function getDatabases(): JsonResponse
     {
         try {
-            $output = $this->runQuery('SHOW DATABASES;');
-            $dbs = array_filter(explode("\n", $output));
-            $dbs = array_values(array_filter($dbs, fn($db) => !in_array($db, ['information_schema', 'performance_schema', 'sys', 'mysql'])));
-            return $this->success(['databases' => $dbs]);
+            $containers = $this->getAllDbContainers();
+            $allDbs = [];
+
+            foreach ($containers as $c) {
+                $password = $this->getDbPassword($c);
+                $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
+                $output = $this->dockerExecDb($c, $cmd);
+                
+                if ($output) {
+                    $dbs = array_filter(explode("\n", $output));
+                    foreach ($dbs as $db) {
+                        $db = trim($db);
+                        if (!in_array($db, ['information_schema', 'performance_schema', 'sys', 'mysql'])) {
+                            $allDbs[] = "[$c] $db";
+                        }
+                    }
+                }
+            }
+            
+            return $this->success(['databases' => array_values(array_unique($allDbs))]);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -166,8 +206,15 @@ class DatabaseController extends Controller
     {
         $request->validate(['name' => 'required|string|alpha_dash']);
         try {
-            $this->runQuery("CREATE DATABASE `{$request->name}`;");
-            return $this->success([], "Database {$request->name} berhasil dibuat.");
+            // Kita buat di container pertama secara default
+            $containers = $this->getAllDbContainers();
+            $container = $containers[0];
+
+            $password = $this->getDbPassword($container);
+            $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', "CREATE DATABASE `{$request->name}`;"];
+            $this->dockerExecDb($container, $cmd);
+
+            return $this->success([], "Database {$request->name} berhasil dibuat di container {$container}.");
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -187,8 +234,6 @@ class DatabaseController extends Controller
     public function getTableRows(string $db, string $table): JsonResponse
     {
         try {
-            // Kita butuh column headers juga.
-            // Opsi 1: gunakan `DESCRIBE $table` untuk ambil nama kolom.
             $descOutput = $this->runQuery("DESCRIBE `{$table}`;", $db);
             $descLines = array_filter(explode("\n", $descOutput));
             $columns = [];
@@ -197,7 +242,6 @@ class DatabaseController extends Controller
                 if (count($parts) > 0) $columns[] = $parts[0];
             }
 
-            // Ambil data
             $output = $this->runQuery("SELECT * FROM `{$table}` LIMIT 100;", $db);
             $lines = array_filter(explode("\n", $output));
             
@@ -216,16 +260,17 @@ class DatabaseController extends Controller
     {
         $request->validate(['query' => 'required|string']);
         try {
-            // Gunakan -t (table format) agar output rapi
-            $container = $this->getDbContainer();
+            $containers = $this->getAllDbContainers();
+            $container = $containers[0];
             $password = $this->getDbPassword($container);
+            
             $cmd = ['mysql', '-u', 'root', "-p{$password}", '-t', '-e', $request->query];
             $output = $this->dockerExecDb($container, $cmd);
             
             if (str_contains(strtolower($output ?? ''), 'error ')) {
                 throw new \Exception($output);
             }
-            return $this->success(['output' => $output], "Query berhasil dieksekusi.");
+            return $this->success(['output' => $output], "Query berhasil dieksekusi di container {$container}.");
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -234,13 +279,24 @@ class DatabaseController extends Controller
     public function exportDatabase(string $db): JsonResponse
     {
         try {
-            $container = $this->getDbContainer();
+            $container = null;
+            $realDb = $db;
+            if (preg_match('/^\[(.*?)\]\s+(.*)$/', $db, $matches)) {
+                $container = $matches[1];
+                $realDb = trim($matches[2]);
+            }
+
+            if (!$container) {
+                $containers = $this->getAllDbContainers();
+                $container = $containers[0];
+            }
+
             $password = $this->getDbPassword($container);
             
-            $cmd = ['mysqldump', '-u', 'root', "-p{$password}", $db];
+            $cmd = ['mysqldump', '-u', 'root', "-p{$password}", $realDb];
             $sql = $this->dockerExecDb($container, $cmd);
             
-            $filename = "{$db}_backup_" . date('Ymd_His') . ".sql";
+            $filename = "{$realDb}_backup_" . date('Ymd_His') . ".sql";
             $path = public_path("downloads");
             if (!is_dir($path)) mkdir($path, 0777, true);
             
