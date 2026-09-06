@@ -1,0 +1,120 @@
+========================================================================
+PANDUAN HOSTING PROYEK & KONEKSI DATABASE DI MSS SERVER (LINUX TOSHIBA)
+========================================================================
+Diperbarui pada: v1.1.6 (Manajemen Port Seri 9000 & Mode Hosting Baru)
+
+Jika Bapak ingin meng-hosting proyek dari Github (misalnya: https://github.com/Afiqq19/portofoliome.git) ke dalam server Linux Toshiba ini (IP: 192.168.1.100) dan menghubungkannya ke Database Master (MariaDB/MySQL) yang ada di Panel, ikuti panduan lengkap berikut dari awal sampai online!
+
+------------------------------------------------------------------------
+LANGKAH 1: SIAPKAN DATABASE KOSONG DI PANEL
+------------------------------------------------------------------------
+1. Buka MSS Server Panel Bapak di browser (https://panel.xie.my.id).
+2. Masuk ke menu "Database Manager" di sebelah kiri.
+3. Di tab "Visual Explorer", klik tombol bulat warna biru dengan tanda Plus (+ Database Baru).
+4. Masukkan nama database untuk proyek portofolio Bapak (contoh: db_portofolio_baru).
+5. Selesai! Database kosong sudah siap digunakan.
+
+------------------------------------------------------------------------
+LANGKAH 2: MASUK KE SERVER VIA TERMINAL (SSH)
+------------------------------------------------------------------------
+1. Buka Terminal / Command Prompt di komputer/laptop Bapak.
+2. Ketik perintah SSH untuk masuk ke server Toshiba:
+   ssh mss@192.168.1.100
+3. Masukkan password server Bapak jika diminta.
+4. Pastikan Bapak sudah melihat tulisan "mss@servermss:~$" yang menandakan Bapak sudah berhasil masuk.
+
+------------------------------------------------------------------------
+LANGKAH 3: CLONE (UNDUH) PROYEK DARI GITHUB
+------------------------------------------------------------------------
+1. Masuk ke folder penampung web Bapak (biasanya di /var/www/ atau direktori khusus Bapak):
+   cd /var/www/
+2. Lakukan perintah `git clone` menggunakan link Github Bapak:
+   git clone https://github.com/Afiqq19/portofoliome.git
+3. Masuk ke dalam folder proyek yang baru saja di-download:
+   cd portofoliome
+
+------------------------------------------------------------------------
+LANGKAH 4: HUBUNGKAN PROYEK KE DATABASE PANEL BAPAK
+------------------------------------------------------------------------
+1. (Contoh untuk Laravel) Gandakan file konfigurasi `.env`:
+   cp .env.example .env
+2. Edit file `.env` (misal menggunakan text editor nano):
+   nano .env
+3. Gunakan PENGATURAN SAKTI ini untuk mengkoneksikannya ke Database Docker Bapak:
+   
+   DB_CONNECTION=mysql
+   DB_HOST=172.17.0.1      <--- (PENTING! Ini adalah IP Gateway Utama Docker Panel)
+   DB_PORT=3306
+   DB_DATABASE=db_portofolio_baru
+   DB_USERNAME=root
+   DB_PASSWORD=rahasia123  <--- (Sesuai password ROOT di server Bapak)
+
+4. Simpan perubahan dengan menekan CTRL+X, lalu Y, lalu ENTER.
+
+------------------------------------------------------------------------
+LANGKAH 5: INSTALL DEPENDENSI & MIGRATE DATABASE
+------------------------------------------------------------------------
+Masih di dalam terminal (folder proyek), lakukan instalasi standar:
+1. Install library package:
+   composer install
+2. Generate Application Key:
+   php artisan key:generate
+3. Kirim rancangan tabel Bapak agar masuk ke Database Manager:
+   php artisan migrate
+
+(Jika sukses, seluruh tabel Bapak sekarang otomatis akan muncul saat dicek di menu "Database Manager" di Panel MSS!)
+
+------------------------------------------------------------------------
+LANGKAH 6: HOSTING MULTI-PORT (MODE TERBARU SERI 9000)
+------------------------------------------------------------------------
+Karena Bapak akan menjalankan banyak website di satu server (IP 192.168.1.100) secara bersamaan, kita akan memisahkan tiap website dengan Port Seri 9000 agar tidak pernah bentrok.
+(Biarkan website lama menggunakan port awalnya, kita gunakan seri 9000 ini untuk website-website baru ke depannya).
+
+Aturan Port:
+- Website 1 (Portofolio)   -> Port 9001
+- Website 2 (Toko Online)  -> Port 9002
+- Website 3 (Blog Pribadi) -> Port 9003
+- dan seterusnya naik berurutan.
+
+Opsi A (Mode PM2 - Paling Disarankan agar Nyala Terus di Background):
+1. Install PM2 jika belum ada di server Toshiba Bapak (cukup install sekali seumur hidup):
+   sudo npm install -g pm2
+2. Suruh PM2 menjalankan Laravel Bapak di Port 9001:
+   pm2 start "php artisan serve --host=0.0.0.0 --port=9001" --name="web_portofolio"
+3. Kunci PM2 agar otomatis jalan lagi saat laptop Toshiba mati/restart:
+   pm2 save
+   pm2 startup
+-> Selamat! Website portofolio Bapak otomatis online selamanya (selama laptop hidup) di:
+   http://192.168.1.100:9001
+
+Opsi B (Mode Manual Testing Biasa):
+1. Jalankan perintah serve dengan mendefinisikan port 9001 secara spesifik:
+   php artisan serve --host=0.0.0.0 --port=9001
+-> Buka browser di: http://192.168.1.100:9001
+(Namun ingat, jika Bapak menutup Terminal, website akan mati. Lebih baik gunakan Opsi A PM2).
+
+------------------------------------------------------------------------
+LANGKAH 7 (OPSIONAL): MENJADIKAN PORT HILANG MENGGUNAKAN NGINX (REVERSE PROXY)
+------------------------------------------------------------------------
+Jika Bapak ingin mengakses portofolio TANPA mengetik port 9001 di ujungnya (misal ingin akses langsung "http://portofolio.local"):
+
+1. Buat konfigurasi Nginx:
+   sudo nano /etc/nginx/sites-available/portofolio
+2. Isikan block Reverse Proxy untuk melempar koneksi ke port 9001 secara gaib:
+   server {
+       listen 80;
+       server_name portofolio.local; # (bisa diganti domain internet asli Bapak jika sudah beli)
+
+       location / {
+           proxy_pass http://127.0.0.1:9001;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+       }
+   }
+3. Aktifkan dan restart Nginx:
+   sudo ln -s /etc/nginx/sites-available/portofolio /etc/nginx/sites-enabled/
+   sudo systemctl restart nginx
+
+========================================================================
+SELESAI! PROYEK BAPAK SUDAH ONLINE, AMAN DARI BENTROK PORT, DAN SIAP!
+========================================================================
