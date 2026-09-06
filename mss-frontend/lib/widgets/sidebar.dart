@@ -302,17 +302,37 @@ class Sidebar extends StatelessWidget {
             }
           },
           borderRadius: BorderRadius.circular(12),
-          hoverColor: const Color(0xFF1E293B).withOpacity(0.8),
-          highlightColor: const Color(0xFF1E293B).withOpacity(0.4),
+          hoverColor: Theme.of(context).primaryColor.withOpacity(0.1),
+          highlightColor: Theme.of(context).primaryColor.withOpacity(0.05),
           splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
+              gradient: isSelected
+                  ? LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor.withOpacity(0.2),
+                        Theme.of(context).primaryColor.withOpacity(0.05),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    )
+                  : null,
               border: Border.all(
                 color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.4) : Colors.transparent,
+                width: 1,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : [],
             ),
             child: Row(
               children: [

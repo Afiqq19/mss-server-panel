@@ -32,9 +32,9 @@ class MssServerPanelApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF030712),
+        scaffoldBackgroundColor: Colors.transparent, // Transparent to allow mesh gradient from screens
         primaryColor: themeProvider.primary,
-        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme).apply(
+        textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme).apply(
           bodyColor: Colors.white,
           displayColor: Colors.white,
         ),

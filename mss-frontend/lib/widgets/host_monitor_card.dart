@@ -37,10 +37,15 @@ class HostMonitorCard extends StatelessWidget {
             border: Border.all(color: Colors.white.withOpacity(0.1)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF06B6D4).withOpacity(0.05),
+                color: Theme.of(context).primaryColor.withOpacity(0.15),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
                 spreadRadius: 2,
+              ),
+              BoxShadow(
+                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                blurRadius: 10,
+                spreadRadius: -2,
               ),
             ],
           ),
@@ -58,12 +63,18 @@ class HostMonitorCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF06B6D4).withOpacity(0.15),
+                          color: Theme.of(context).primaryColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).primaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                            )
+                          ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.dns,
-                          color: Color(0xFF06B6D4),
+                          color: Theme.of(context).primaryColor,
                           size: 22,
                         ),
                       ),

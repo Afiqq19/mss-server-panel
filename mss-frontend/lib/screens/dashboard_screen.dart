@@ -332,16 +332,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFF0A0F1D),
+      backgroundColor: Colors.transparent,
       drawer: isDesktop
           ? null
           : Drawer(
-              backgroundColor: const Color(0xFF0F172A),
+              backgroundColor: const Color(0xFF0F172A).withOpacity(0.9),
               surfaceTintColor: Colors.transparent,
               child: Sidebar(
                 currentRoute: _currentRoute,
                 onNavigate: (route) {
-                  if (route == '/dashboard' || route == '/backup' || route == '/containers' || route == '/network' || route == '/terminal' || route == '/settings' || route == '/maintenance') {
+                  if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(route)) {
                     setState(() => _currentRoute = route);
                     _saveRoute(route);
                     Navigator.pop(context); // Close drawer
@@ -360,11 +360,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF050B14), Color(0xFF0B1221), Color(0xFF030712)],
+        decoration: BoxDecoration(
+          color: const Color(0xFF030712),
+          gradient: RadialGradient(
+            center: const Alignment(-0.8, -0.5),
+            radius: 1.5,
+            colors: [
+              themeProvider.primary.withOpacity(0.15),
+              const Color(0xFF050B14),
+              const Color(0xFF030712),
+            ],
+            stops: const [0.0, 0.4, 1.0],
           ),
         ),
         child: Row(
