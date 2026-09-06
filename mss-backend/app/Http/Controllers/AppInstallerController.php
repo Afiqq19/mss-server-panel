@@ -109,12 +109,12 @@ services:
             mkdir -p $targetDir && 
             echo $composeContent > $targetDir/docker-compose.yml && 
             cd $targetDir && 
-            docker compose up -d 2>&1 || docker-compose up -d 2>&1
+            nohup sh -c 'docker compose up -d || docker-compose up -d' > install.log 2>&1 &
         ";
 
         try {
-            $output = $this->runHostCommand($script);
-            return $this->success(['output' => $output], "{$app['name']} berhasil diinstall.");
+            $this->runHostCommand($script);
+            return $this->success(['output' => 'Proses instalasi sedang berjalan di latar belakang. Silakan tunggu 1-5 menit hingga proses download selesai.'], "{$app['name']} sedang diinstall di background.");
         } catch (Throwable $e) {
             return $this->error('Gagal menginstall aplikasi: ' . $e->getMessage(), 500);
         }
