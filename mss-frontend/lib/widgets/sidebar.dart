@@ -98,7 +98,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.dashboard,
                     size: 20,
-                    color: currentRoute == '/dashboard' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/dashboard' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/dashboard',
                 ),
@@ -108,7 +108,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.data_object,
                     size: 20,
-                    color: currentRoute == '/containers' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/containers' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/containers',
                 ),
@@ -118,7 +118,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.cloud_sync,
                     size: 20,
-                    color: currentRoute == '/backup' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/backup' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/backup',
                   badge: 'Auto',
@@ -129,7 +129,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.router,
                     size: 20,
-                    color: currentRoute == '/network' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/network' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/network',
                 ),
@@ -139,9 +139,20 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.rocket_launch,
                     size: 20,
-                    color: currentRoute == '/installer' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/installer' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/installer',
+                ),
+                _buildMenuItem(
+                  context,
+                  title: 'Database Manager',
+                  iconWidget: Icon(
+                    Icons.storage,
+                    size: 20,
+                    color: currentRoute == '/database' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
+                  ),
+                  route: '/database',
+                  badge: 'New',
                 ),
                 _buildMenuItem(
                   context,
@@ -149,7 +160,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.schedule,
                     size: 20,
-                    color: currentRoute == '/cron' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/cron' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/cron',
                 ),
@@ -172,7 +183,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.security,
                     size: 20,
-                    color: currentRoute == '/security' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/security' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/security',
                 ),
@@ -182,7 +193,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.memory,
                     size: 20,
-                    color: currentRoute == '/services' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/services' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/services',
                 ),
@@ -192,7 +203,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.receipt_long,
                     size: 20,
-                    color: currentRoute == '/logs' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/logs' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/logs',
                 ),
@@ -202,7 +213,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.settings,
                     size: 20,
-                    color: currentRoute == '/maintenance' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/maintenance' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/maintenance',
                 ),
@@ -212,7 +223,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.terminal,
                     size: 20,
-                    color: currentRoute == '/terminal' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/terminal' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/terminal',
                 ),
@@ -222,7 +233,7 @@ class Sidebar extends StatelessWidget {
                   iconWidget: Icon(
                     Icons.settings,
                     size: 20,
-                    color: currentRoute == '/settings' ? Theme.of(context).primaryColor : const Color(0xFF64748B),
+                    color: currentRoute == '/settings' ? Theme.of(context).primaryColor : const Color(0xFF94A3B8),
                   ),
                   route: '/settings',
                 ),
@@ -342,7 +353,7 @@ class Sidebar extends StatelessWidget {
                   child: Text(
                     title,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                      color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
                       fontSize: 14,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
