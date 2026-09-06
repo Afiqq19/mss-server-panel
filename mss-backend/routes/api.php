@@ -15,6 +15,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\AppInstallerController;
+use App\Http\Controllers\DatabaseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,4 +88,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // App Installer (Phase 4)
     Route::get('/installer/apps', [AppInstallerController::class, 'listApps']);
     Route::post('/installer/install', [AppInstallerController::class, 'installApp']);
+
+    // Database Manager (v1.1.0)
+    Route::get('/database', [DatabaseController::class, 'getDatabases']);
+    Route::post('/database/create', [DatabaseController::class, 'createDatabase']);
+    Route::get('/database/tables', [DatabaseController::class, 'getTables']);
+    Route::get('/database/rows', [DatabaseController::class, 'getTableRows']);
+    Route::post('/database/query', [DatabaseController::class, 'executeRawQuery']);
+    Route::get('/database/export', [DatabaseController::class, 'exportDatabase']);
 });

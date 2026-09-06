@@ -27,6 +27,7 @@ import 'services_screen.dart';
 import 'logs_screen.dart';
 import 'cron_screen.dart';
 import 'app_installer_screen.dart';
+import 'database_manager_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -379,7 +380,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Sidebar(
               currentRoute: _currentRoute,
               onNavigate: (route) {
-                if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(route)) {
+                if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/database', '/installer'].contains(route)) {
                   setState(() => _currentRoute = route);
                   _saveRoute(route);
                 } else {
@@ -516,6 +517,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         case '/logs': return 9;
                         case '/cron': return 10;
                         case '/installer': return 11;
+                        case '/database': return 12;
                         default: return 0;
                       }
                     }(),
@@ -576,6 +578,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const CronScreen(),
                       // 11: App Installer
                       const AppInstallerScreen(),
+                      // 12: Database Manager
+                      const DatabaseManagerScreen(),
                     ],
                   ),
                 ),
