@@ -366,11 +366,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             center: const Alignment(-0.8, -0.5),
             radius: 1.5,
             colors: [
-              Theme.of(context).primaryColor.withOpacity(0.15),
-              const Color(0xFF050B14),
+              Theme.of(context).primaryColor.withOpacity(0.08),
               const Color(0xFF030712),
             ],
-            stops: const [0.0, 0.4, 1.0],
+            stops: const [0.0, 1.0],
           ),
         ),
         child: Row(

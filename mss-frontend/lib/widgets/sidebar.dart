@@ -21,7 +21,7 @@ class Sidebar extends StatelessWidget {
         child: Container(
           width: 260,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.02),
+            color: const Color(0xFF0F172A).withOpacity(0.5),
             border: Border(
               right: BorderSide(
                 color: Colors.white.withOpacity(0.1),
