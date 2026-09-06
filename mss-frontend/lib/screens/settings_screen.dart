@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/app_launcher_model.dart';
 import '../services/api_service.dart';
 import '../providers/theme_provider.dart';
@@ -43,11 +46,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _appVersion = 'v${info.version}';
-      });
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (info.version.isNotEmpty && info.version != 'Unknown') {
+        if (mounted) setState(() => _appVersion = 'v${info.version}');
+        return;
+      }
+    } catch (_) {}
+    
+    // Fallback for Flutter Web
+    try {
+      final api = context.read<ApiService>();
+      final baseUrl = api.baseUrl.replaceAll('/api', '');
+      final url = baseUrl.isEmpty ? '/version.json' : '$baseUrl/version.json';
+      
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted && data['version'] != null) {
+          setState(() => _appVersion = 'v${data['version']}');
+        }
+      } else {
+        if (mounted) setState(() => _appVersion = 'v1.0.6');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _appVersion = 'v1.0.6');
     }
   }
 

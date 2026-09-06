@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/app_launcher_model.dart';
 import '../models/container_model.dart';
 import '../models/host_stats_model.dart';
@@ -66,17 +69,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Auto refresh data every 10 seconds (Bab 7 real-time monitoring)
     _periodicTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) {
-        _loadDashboardData();
+        _loadDashboardData(isBackground: true);
       }
     });
   }
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _appVersion = 'v${info.version}';
-      });
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (info.version.isNotEmpty && info.version != 'Unknown') {
+        if (mounted) setState(() => _appVersion = 'v${info.version}');
+        return;
+      }
+    } catch (_) {}
+    
+    // Fallback for Flutter Web where PackageInfo might fail
+    try {
+      final api = context.read<ApiService>();
+      final baseUrl = api.baseUrl.replaceAll('/api', '');
+      final url = baseUrl.isEmpty ? '/version.json' : '$baseUrl/version.json';
+      
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted && data['version'] != null) {
+          setState(() => _appVersion = 'v${data['version']}');
+        }
+      } else {
+        if (mounted) setState(() => _appVersion = 'v1.0.6');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _appVersion = 'v1.0.6');
     }
   }
 
@@ -128,12 +151,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> _loadDashboardData() async {
+  Future<void> _loadDashboardData({bool isBackground = false}) async {
     final api = context.read<ApiService>();
-    setState(() {
-      _isLoadingInitial = true;
-      _errorMessage = null;
-    });
+    if (!isBackground) {
+      setState(() {
+        _isLoadingInitial = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final statsFuture = api.fetchHostStats().catchError((_) => HostStatsModel(
@@ -165,14 +190,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           _pushCpuValue(_hostStats!.cpuUsagePercent);
 
-          _isLoadingInitial = false;
+          if (!isBackground) {
+            _isLoadingInitial = false;
+          }
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
-          _isLoadingInitial = false;
+          _errorMessage = e.toString();
+          if (!isBackground) {
+            _isLoadingInitial = false;
+          }
         });
       }
     }

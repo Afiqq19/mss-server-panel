@@ -5,146 +5,110 @@ namespace App\Traits;
 trait HostCommand
 {
     /**
-     * Spawn temporary container dengan mode Host Network dan akses volume host
+     * Eksekusi perintah secara langsung di Host OS (laptop Toshiba) 
+     * melalui Docker Socket & chroot host filesystem.
      */
     protected function runHostCommand(string $cmd): ?string
     {
         $socket = '/var/run/docker.sock';
         if (!file_exists($socket)) {
-            // Fallback jika tidak ada akses Docker (misal di local dev Windows)
+            // Fallback jika dijalankan di lokal Windows saat development
             return shell_exec($cmd . ' 2>&1');
         }
 
-        $ch = curl_init("http://localhost/containers/create");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        
-        // Kita bind mount seluruh filesystem host ke /host_fs agar bisa manipulasi file host
-        $payload = json_encode([
-            'Image' => 'alpine:latest',
-            'Cmd' => ['sh', '-c', "chroot /host_fs /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c " . escapeshellarg($cmd)],
-            'HostConfig' => [
-                'NetworkMode' => 'host',
-                'AutoRemove' => false,
-                'Binds' => [
-                    '/:/host_fs'
-                ]
-            ]
-        ]);
-        
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        $response = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        // Gunakan image yang pasti sudah ada di server (nginx:alpine atau tsl0922/ttyd)
+        $images = ['nginx:alpine', 'tsl0922/ttyd:latest', 'alpine:latest'];
+        $containerId = null;
 
-        if ($code !== 201) {
-            // Jika alpine:latest tidak ada, fallback ke nginx:alpine tanpa chroot (karena nginx container nggak punya sh shell yang lengkap kadang)
-            return $this->runHostCommandFallback($cmd, $socket);
+        foreach ($images as $image) {
+            $containerId = $this->createHostTaskContainer($socket, $image, $cmd);
+            if ($containerId) break;
         }
 
-        $container = json_decode($response, true);
-        $id = $container['Id'] ?? null;
-        if (!$id) return null;
+        if (!$containerId) {
+            return shell_exec($cmd . ' 2>&1');
+        }
 
-        // Start
-        $ch = curl_init("http://localhost/containers/$id/start");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_exec($ch);
-        curl_close($ch);
+        // 1. Jalankan kontainer
+        $this->dockerSocketRequest($socket, "/containers/$containerId/start", 'POST');
 
-        // Wait (timeout 30 detik untuk menghindari hanging)
-        $ch = curl_init("http://localhost/containers/$id/wait");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_exec($ch);
-        curl_close($ch);
+        // 2. Tunggu eksekusi selesai (maksimal timeout 30 detik)
+        $this->dockerSocketRequest($socket, "/containers/$containerId/wait", 'POST', null, 30);
 
-        // Logs
-        $ch = curl_init("http://localhost/containers/$id/logs?stdout=true&stderr=true");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $logsRaw = curl_exec($ch);
-        curl_close($ch);
+        // 3. Ambil log hasil output
+        $rawLogs = $this->dockerSocketRequest($socket, "/containers/$containerId/logs?stdout=true&stderr=true", 'GET');
 
-        // Delete
-        $ch = curl_init("http://localhost/containers/$id?v=true&force=true");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_exec($ch);
-        curl_close($ch);
+        // 4. Hapus kontainer sementara agar disk tidak penuh
+        $this->dockerSocketRequest($socket, "/containers/$containerId?v=true&force=true", 'DELETE');
 
-        return $this->stripDockerStreamHeader($logsRaw);
+        return $this->stripDockerStreamHeader($rawLogs ?? '');
     }
 
-    private function runHostCommandFallback(string $cmd, string $socket): ?string
+    /**
+     * Membuat container worker sementara dengan akses penuh ke host
+     */
+    private function createHostTaskContainer(string $socket, string $image, string $cmd): ?string
     {
-        $ch = curl_init("http://localhost/containers/create");
-        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        
         $payload = json_encode([
-            'Image' => 'ubuntu:latest', // Menggunakan ubuntu karena server pasti punya ubuntu base image
-            'Cmd' => ['sh', '-c', "chroot /host_fs /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c " . escapeshellarg($cmd)],
+            'Image' => $image,
+            'Cmd' => [
+                'sh', '-c',
+                "chroot /host_fs /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin sh -c " . escapeshellarg($cmd)
+            ],
             'HostConfig' => [
                 'NetworkMode' => 'host',
-                'AutoRemove' => false,
-                'Binds' => [
+                'Privileged'  => true,
+                'AutoRemove'   => false,
+                'Binds'       => [
                     '/:/host_fs'
                 ]
             ]
         ]);
+
+        $ch = curl_init("http://localhost/containers/create");
+        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+        curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        
         $response = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($code !== 201) return shell_exec($cmd . ' 2>&1');
+        if ($code === 201) {
+            $data = json_decode($response, true);
+            return $data['Id'] ?? null;
+        }
 
-        $container = json_decode($response, true);
-        $id = $container['Id'] ?? null;
-        if (!$id) return null;
-
-        $chStart = curl_init("http://localhost/containers/$id/start");
-        curl_setopt($chStart, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($chStart, CURLOPT_POST, true);
-        curl_setopt($chStart, CURLOPT_RETURNTRANSFER, true);
-        curl_exec($chStart);
-        curl_close($chStart);
-
-        $chWait = curl_init("http://localhost/containers/$id/wait");
-        curl_setopt($chWait, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($chWait, CURLOPT_POST, true);
-        curl_setopt($chWait, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chWait, CURLOPT_TIMEOUT, 30);
-        curl_exec($chWait);
-        curl_close($chWait);
-        
-        $chLogs = curl_init("http://localhost/containers/$id/logs?stdout=true&stderr=true");
-        curl_setopt($chLogs, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($chLogs, CURLOPT_RETURNTRANSFER, true);
-        $logsRaw = curl_exec($chLogs);
-        curl_close($chLogs);
-        
-        $chDel = curl_init("http://localhost/containers/$id?v=true&force=true");
-        curl_setopt($chDel, CURLOPT_UNIX_SOCKET_PATH, $socket);
-        curl_setopt($chDel, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($chDel, CURLOPT_RETURNTRANSFER, true);
-        curl_exec($chDel);
-        curl_close($chDel);
-
-        return $this->stripDockerStreamHeader($logsRaw);
+        return null;
     }
 
-    private function stripDockerStreamHeader($raw): string
+    /**
+     * Helper universal curl ke Docker Socket
+     */
+    private function dockerSocketRequest(string $socket, string $endpoint, string $method = 'GET', ?array $payload = null, int $timeout = 10): ?string
+    {
+        $ch = curl_init("http://localhost" . $endpoint);
+        curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+        if ($payload) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        }
+
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return $res ?: null;
+    }
+
+    /**
+     * Menghapus 8-byte Docker stream multiplexing header dari output logs
+     */
+    private function stripDockerStreamHeader(string $raw): string
     {
         if (empty($raw)) return '';
         $output = '';
