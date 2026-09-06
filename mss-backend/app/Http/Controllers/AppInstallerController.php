@@ -32,8 +32,8 @@ services:
 "
         ],
         'wordpress' => [
-            'name' => 'WordPress (with MySQL)',
-            'description' => 'Install a fresh WordPress instance.',
+            'name' => 'WordPress (with MySQL & phpMyAdmin)',
+            'description' => 'Install a fresh WordPress instance bundled with phpMyAdmin (Port 8081).',
             'compose' => "
 version: '3.8'
 services:
@@ -61,6 +61,18 @@ services:
       WORDPRESS_DB_NAME: wordpress
     volumes:
       - ./wp_data:/var/www/html
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - '8081:80'
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: changeme
+    depends_on:
+      - db
 "
         ],
     ];
