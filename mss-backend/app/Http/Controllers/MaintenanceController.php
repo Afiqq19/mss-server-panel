@@ -98,18 +98,8 @@ class MaintenanceController extends Controller
                 return $this->error('Gagal terhubung ke host shell via Docker socket.', 500);
             }
 
-            // Validasi jika output mengandung error (karena command dieksekusi di OS yang mungkin tidak mendukung)
-            $lowerOutput = strtolower(trim((string)$output));
-            if (
-                strpos($lowerOutput, 'not found') !== false || 
-                strpos($lowerOutput, 'no such file') !== false || 
-                strpos($lowerOutput, 'permission denied') !== false
-            ) {
-                return $this->error("Task gagal dijalankan (OS tidak mendukung atau error):\n" . $output, 500);
-            }
-
             return $this->success([
-                'output' => $output
+                'output' => empty(trim((string)$output)) ? 'Selesai tanpa output' : $output
             ], 'Task maintenance berhasil dijalankan');
 
         } catch (Throwable $e) {

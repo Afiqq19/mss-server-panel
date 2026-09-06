@@ -44,6 +44,4 @@ class TerminalController extends Controller
             ], 500);
         }
     }
-
-    }
 }
