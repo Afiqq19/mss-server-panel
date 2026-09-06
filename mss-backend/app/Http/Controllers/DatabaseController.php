@@ -223,11 +223,16 @@ class DatabaseController extends Controller
 
     public function createDatabase(Request $request): JsonResponse
     {
-        $request->validate(['name' => 'required|string|alpha_dash']);
+        $request->validate([
+            'name' => 'required|string|alpha_dash',
+            'container' => 'nullable|string'
+        ]);
         try {
-            // Kita buat di container pertama secara default
-            $containers = $this->getAllDbContainers();
-            $container = $containers[0];
+            $container = $request->input('container');
+            if (!$container) {
+                $containers = $this->getAllDbContainers();
+                $container = $containers[0];
+            }
 
             $password = $this->getDbPassword($container);
             $client = $this->resolveDbCommand($container, 'client');
@@ -283,18 +288,35 @@ class DatabaseController extends Controller
     {
         $request->validate(['query' => 'required|string']);
         try {
-            $containers = $this->getAllDbContainers();
-            $container = $containers[0];
+            $db = $request->input('db', '');
+            $container = null;
+            $realDb = '';
+            if ($db !== '' && preg_match('/^\[(.*?)\]\s+(.*)$/', $db, $matches)) {
+                $container = $matches[1];
+                $realDb = trim($matches[2]);
+            }
+
+            if (!$container) {
+                $containers = $this->getAllDbContainers();
+                $container = $containers[0];
+            }
             $password = $this->getDbPassword($container);
             $client = $this->resolveDbCommand($container, 'client');
             
-            $cmd = [$client, '-u', 'root', "-p{$password}", '-t', '-e', $request->query];
+            $cmd = [$client, '-u', 'root', "-p{$password}"];
+            if ($realDb !== '') {
+                $cmd[] = $realDb;
+            }
+            $cmd[] = '-t';
+            $cmd[] = '-e';
+            $cmd[] = $request->input('query');
+            
             $output = $this->dockerExecDb($container, $cmd);
             
-            if (str_contains(strtolower($output ?? ''), 'error ')) {
+            if (str_contains(strtolower($output ?? ''), 'error ') && str_contains(strtolower($output ?? ''), 'at line')) {
                 throw new \Exception($output);
             }
-            return $this->success(['output' => $output], "Query berhasil dieksekusi di container {$container}.");
+            return $this->success(['output' => $output], "Query berhasil dieksekusi di {$container}" . ($realDb ? " ($realDb)" : "") . ".");
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
