@@ -78,11 +78,11 @@ class DatabaseController extends Controller
             foreach ($envs as $envStr) {
                 if (str_starts_with($envStr, 'MYSQL_ROOT_PASSWORD=') || str_starts_with($envStr, 'MARIADB_ROOT_PASSWORD=')) {
                     $parts = explode('=', $envStr, 2);
-                    return $parts[1] ?? 'changeme';
+                    return $parts[1] ?? 'rahasia123';
                 }
             }
         }
-        return 'changeme';
+        return 'rahasia123';
     }
 
     private function dockerExecDb(string $container, array $cmd): ?string
@@ -220,8 +220,9 @@ class DatabaseController extends Controller
         }
     }
 
-    public function getTables(string $db): JsonResponse
+    public function getTables(Request $request): JsonResponse
     {
+        $db = $request->query('db', '');
         try {
             $output = $this->runQuery('SHOW TABLES;', $db);
             $tables = array_filter(explode("\n", $output));
@@ -231,8 +232,10 @@ class DatabaseController extends Controller
         }
     }
 
-    public function getTableRows(string $db, string $table): JsonResponse
+    public function getTableRows(Request $request): JsonResponse
     {
+        $db = $request->query('db', '');
+        $table = $request->query('table', '');
         try {
             $descOutput = $this->runQuery("DESCRIBE `{$table}`;", $db);
             $descLines = array_filter(explode("\n", $descOutput));
@@ -276,8 +279,9 @@ class DatabaseController extends Controller
         }
     }
 
-    public function exportDatabase(string $db): JsonResponse
+    public function exportDatabase(Request $request): JsonResponse
     {
+        $db = $request->query('db', '');
         try {
             $container = null;
             $realDb = $db;
