@@ -366,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             center: const Alignment(-0.8, -0.5),
             radius: 1.5,
             colors: [
-              themeProvider.primary.withOpacity(0.15),
+              Theme.of(context).primaryColor.withOpacity(0.15),
               const Color(0xFF050B14),
               const Color(0xFF030712),
             ],
