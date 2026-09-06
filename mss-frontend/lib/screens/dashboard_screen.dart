@@ -363,14 +363,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF030712),
-          gradient: RadialGradient(
-            center: const Alignment(-0.8, -0.5),
+          gradient: const RadialGradient(
+            center: Alignment(-0.8, -0.5),
             radius: 1.5,
             colors: [
-              Theme.of(context).primaryColor.withOpacity(0.08),
-              const Color(0xFF030712),
+              Color(0xFF1E293B), // Neutral dark slate
+              Color(0xFF030712),
             ],
-            stops: const [0.0, 1.0],
+            stops: [0.0, 1.0],
           ),
         ),
         child: Row(
