@@ -246,11 +246,26 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                       itemBuilder: (ctx, i) {
                         final db = _databases[i];
                         final isSelected = db == _selectedDb;
-                        return ListTile(
-                          leading: const Icon(Icons.storage, color: Colors.white70, size: 20),
-                          title: Text(db, style: TextStyle(color: isSelected ? const Color(0xFF3B82F6) : Colors.white)),
-                          tileColor: isSelected ? Colors.white.withOpacity(0.05) : null,
-                          onTap: () => _loadTables(db),
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.15) : Colors.transparent,
+                            border: Border.all(color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.3) : Colors.transparent),
+                          ),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            leading: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(Icons.storage, color: isSelected ? Theme.of(context).primaryColor : Colors.white70, size: 18),
+                            ),
+                            title: Text(db, style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 13)),
+                            onTap: () => _loadTables(db),
+                          ),
                         );
                       },
                     ),
@@ -285,11 +300,26 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                       itemBuilder: (ctx, i) {
                         final table = _tables[i];
                         final isSelected = table == _selectedTable;
-                        return ListTile(
-                          leading: const Icon(Icons.table_chart, color: Colors.white70, size: 20),
-                          title: Text(table, style: TextStyle(color: isSelected ? const Color(0xFF3B82F6) : Colors.white)),
-                          tileColor: isSelected ? Colors.white.withOpacity(0.05) : null,
-                          onTap: () => _loadTableRows(table),
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.15) : Colors.transparent,
+                            border: Border.all(color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.3) : Colors.transparent),
+                          ),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            leading: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(Icons.grid_on_rounded, color: isSelected ? Theme.of(context).primaryColor : Colors.white70, size: 18),
+                            ),
+                            title: Text(table, style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 13)),
+                            onTap: () => _loadTableRows(table),
+                          ),
                         );
                       },
                     ),
@@ -322,11 +352,19 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen> {
                       scrollDirection: Axis.horizontal,
                       child: SingleChildScrollView(
                         child: DataTable(
-                          headingRowColor: MaterialStateProperty.all(Colors.white.withOpacity(0.05)),
+                          headingRowColor: MaterialStateProperty.all(const Color(0xFF1E293B)),
+                          border: TableBorder(
+                            horizontalInside: BorderSide(color: Colors.white.withOpacity(0.05), width: 1),
+                          ),
                           columns: _columns.map((c) => DataColumn(label: Text(c, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))).toList(),
-                          rows: _rows.map((row) => DataRow(
-                            cells: row.map((cell) => DataCell(Text(cell, style: const TextStyle(color: Colors.white70)))).toList(),
-                          )).toList(),
+                          rows: _rows.asMap().entries.map((entry) {
+                            final idx = entry.key;
+                            final row = entry.value;
+                            return DataRow(
+                              color: MaterialStateProperty.all(idx % 2 == 0 ? Colors.transparent : Colors.white.withOpacity(0.02)),
+                              cells: row.map((cell) => DataCell(Text(cell, style: const TextStyle(color: Colors.white70)))).toList(),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),

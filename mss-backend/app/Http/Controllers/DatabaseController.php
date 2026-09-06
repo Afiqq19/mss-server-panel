@@ -185,7 +185,7 @@ class DatabaseController extends Controller
                 $cmd = ['mysql', '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
                 $output = $this->dockerExecDb($c, $cmd);
                 
-                if ($output) {
+                if ($output && !str_contains(strtolower($output), 'oci runtime') && !str_contains(strtolower($output), 'executable file not found') && !str_contains(strtolower($output), 'error ')) {
                     $dbs = array_filter(explode("\n", $output));
                     foreach ($dbs as $db) {
                         $db = trim($db);
