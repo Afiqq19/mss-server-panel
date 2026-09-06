@@ -31,6 +31,25 @@ services:
       - ./letsencrypt:/etc/letsencrypt
 "
         ],
+        'phpmyadmin' => [
+            'name' => 'phpMyAdmin (Standalone)',
+            'description' => 'Install phpMyAdmin to manage your existing databases (Port 8081).',
+            'compose' => "
+version: '3.8'
+services:
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - '8081:80'
+    environment:
+      # Mengizinkan login ke server database manapun
+      PMA_ARBITRARY: 1
+      # Secara default akan mencoba koneksi ke host induk
+      PMA_HOST: 172.17.0.1
+      PMA_PORT: 3306
+"
+        ],
         'wordpress' => [
             'name' => 'WordPress (with MySQL & phpMyAdmin)',
             'description' => 'Install a fresh WordPress instance bundled with phpMyAdmin (Port 8081).',
