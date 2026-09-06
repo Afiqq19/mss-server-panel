@@ -54,9 +54,9 @@ Di dalam terminal (di dalam folder proyek Bapak), kita perlu membuat 2 file "sak
    (Lalu Copy-Paste kode di bawah ini. Ganti angka port 9001 jika sudah terpakai):
    version: '3.8'
    services:
-     web_portofolio:
+     syafiq_portofolio:
        build: .
-       container_name: web_portofolio
+       container_name: syafiq_portofolio
        restart: always
        ports:
          - "9001:80"
@@ -87,12 +87,12 @@ LANGKAH 5: JALANKAN DOCKER & MIGRATE DATABASE
 1. Perintahkan Docker untuk merakit proyek Bapak dan menghidupkannya sebagai Container:
    docker compose up -d --build
 
-(Tunggu proses instalasinya sampai selesai. Mulai detik ini, container `web_portofolio` sudah hidup dan OTOMATIS TERDETEKSI di layar MSS Panel / Portainer Bapak!)
+(Tunggu proses instalasinya sampai selesai. Mulai detik ini, container `syafiq_portofolio` sudah hidup dan OTOMATIS TERDETEKSI di layar MSS Panel / Portainer Bapak!)
 
 2. Lakukan instalasi framework Laravel Bapak dari *dalam* container yang baru saja hidup itu dengan tiga perintah ini:
-   docker compose exec web_portofolio composer install
-   docker compose exec web_portofolio php artisan key:generate
-   docker compose exec web_portofolio php artisan migrate
+   docker compose exec syafiq_portofolio composer install
+   docker compose exec syafiq_portofolio php artisan key:generate
+   docker compose exec syafiq_portofolio php artisan migrate
 
 ------------------------------------------------------------------------
 SELESAI! BAGAIMANA CARA MENGAKSESNYA?
