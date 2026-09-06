@@ -32,8 +32,8 @@ trait HostCommand
         // 1. Jalankan kontainer
         $this->dockerSocketRequest($socket, "/containers/$containerId/start", 'POST');
 
-        // 2. Tunggu eksekusi selesai (maksimal timeout 30 detik)
-        $this->dockerSocketRequest($socket, "/containers/$containerId/wait", 'POST', null, 30);
+        // 2. Tunggu eksekusi selesai (maksimal timeout 180 detik untuk proses berat seperti docker pull)
+        $this->dockerSocketRequest($socket, "/containers/$containerId/wait", 'POST', null, 180);
 
         // 3. Ambil log hasil output
         $rawLogs = $this->dockerSocketRequest($socket, "/containers/$containerId/logs?stdout=true&stderr=true", 'GET');
