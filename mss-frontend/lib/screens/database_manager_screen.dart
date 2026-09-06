@@ -387,7 +387,7 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (containers.length > 1) ...[
-                  const Text('Pilih Target Container:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text('Pilih Server Master DB (Host):', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -408,6 +408,11 @@ class _DatabaseManagerScreenState extends State<DatabaseManagerScreen>
                         },
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '*Pilih server mana yang akan menampung database website ini.',
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 10, fontStyle: FontStyle.italic),
                   ),
                   const SizedBox(height: 16),
                 ],
