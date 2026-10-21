@@ -20,18 +20,23 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email|max:150',
+            'email' => 'required|string|max:150',
             'password' => 'required|string|min:6|max:100',
         ]);
 
-        $email = filter_var(trim($request->email), FILTER_SANITIZE_EMAIL);
-        $user = User::where('email', $email)->first();
+        $loginInput = trim($request->email);
+        $user = User::where('email', $loginInput)
+            ->orWhere('name', $loginInput)
+            ->when(\Illuminate\Support\Facades\Schema::hasColumn('users', 'username'), function ($q) use ($loginInput) {
+                return $q->orWhere('username', $loginInput);
+            })
+            ->first();
 
         // Timing-safe check & generic error message to prevent account enumeration
         if (!$user || !Hash::check($request->password, $user->password)) {
             // Mitigasi timing attack & brute-force delay (250ms)
             usleep(250000);
-            Log::warning("Percobaan login gagal untuk: {$email} dari IP: " . $request->ip());
+            Log::warning("Percobaan login gagal untuk: {$loginInput} dari IP: " . $request->ip());
             return $this->error('Email atau kata sandi tidak valid.', 401);
         }
 

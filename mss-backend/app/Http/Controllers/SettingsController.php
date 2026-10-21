@@ -31,10 +31,12 @@ class SettingsController extends Controller
             ], 400);
         }
 
-        if ($request->filled('name')) {
-            $user->name = $request->name;
-        } elseif ($request->filled('username')) {
-            $user->name = $request->username;
+        $username = $request->input('username', $request->input('name'));
+        if (!empty($username)) {
+            $user->name = $username;
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
+                $user->username = $username;
+            }
         }
 
         if ($request->filled('new_password')) {
