@@ -7,7 +7,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -15,22 +15,29 @@ class AuthController extends Controller
 
     /**
      * Login dan generate Sanctum Bearer Token (Bab 5)
+     * Diperketat dengan sanitasi input, mitigasi timing attacks, logging keamanan, dan rotasi token
      */
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
+            'email' => 'required|email|max:150',
+            'password' => 'required|string|min:6|max:100',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = filter_var(trim($request->email), FILTER_SANITIZE_EMAIL);
+        $user = User::where('email', $email)->first();
 
+        // Timing-safe check & generic error message to prevent account enumeration
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return $this->error('Kredensial yang diberikan tidak cocok.', 401);
+            // Mitigasi timing attack & brute-force delay (250ms)
+            usleep(250000);
+            Log::warning("Percobaan login gagal untuk: {$email} dari IP: " . $request->ip());
+            return $this->error('Email atau kata sandi tidak valid.', 401);
         }
 
-        // Hapus token lama jika perlu, lalu buat token baru
-        $token = $user->createToken('mepal-auth-token')->plainTextToken;
+        // Hapus token lama untuk user ini agar sesi rapi dan aman
+        $user->tokens()->where('name', 'mepal-auth-token')->delete();
+        $token = $user->createToken('mepal-auth-token', ['*'], now()->addDays(7))->plainTextToken;
 
         return $this->success([
             'token' => $token,

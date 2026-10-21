@@ -15,13 +15,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Akun Admin Default untuk Login Panel (Bab 5)
-        User::updateOrCreate(
-            ['email' => 'admin@mepal.local'],
-            [
+        // Keamanan: Hanya dibuat jika belum ada di database agar tidak menimpa password yang sudah diganti oleh user
+        $adminEmail = env('ADMIN_DEFAULT_EMAIL', 'admin@mepal.local');
+        $admin = User::where('email', $adminEmail)->first();
+        if (!$admin) {
+            User::create([
+                'email' => $adminEmail,
                 'name' => 'MSS Panel Administrator',
-                'password' => Hash::make('password123'),
-            ]
-        );
+                'password' => Hash::make(env('ADMIN_DEFAULT_PASSWORD', 'password123')),
+            ]);
+        }
 
         // 2. Daftar Shortcut URL Dinamis App Launcher (Bab 4 & 7)
         $launchers = [

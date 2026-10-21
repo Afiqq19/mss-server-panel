@@ -16,21 +16,27 @@ class SettingsController extends Controller
     public function updateAccount(Request $request): JsonResponse
     {
         $request->validate([
-            'username' => 'required|string',
+            'username' => 'nullable|string|max:100',
+            'name' => 'nullable|string|max:100',
             'current_password' => 'required|string',
-            'new_password' => 'nullable|string|min:6',
+            'new_password' => 'nullable|string|min:6|max:100',
         ]);
 
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (!Hash::check($request->password ?? $request->current_password, $user->password)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Password saat ini salah.',
             ], 400);
         }
 
-        $user->username = $request->username;
+        if ($request->filled('name')) {
+            $user->name = $request->name;
+        } elseif ($request->filled('username')) {
+            $user->name = $request->username;
+        }
+
         if ($request->filled('new_password')) {
             $user->password = Hash::make($request->new_password);
         }
