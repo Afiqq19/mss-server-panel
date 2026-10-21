@@ -37,6 +37,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final Set<int> _loadedTabs = {0};
   Timer? _periodicTimer;
   Timer? _clockTimer;
   String _currentTimeString = '--:--:--';
@@ -54,6 +55,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isRefreshing = false;
   String? _errorMessage;
   String _appVersion = '-';
+
+  int _getRouteIndex(String route) {
+    switch (route) {
+      case '/containers': return 1;
+      case '/backup': return 2;
+      case '/network': return 3;
+      case '/terminal': return 4;
+      case '/settings': return 5;
+      case '/maintenance': return 6;
+      case '/security': return 7;
+      case '/services': return 8;
+      case '/logs': return 9;
+      case '/cron': return 10;
+      case '/installer': return 11;
+      case '/database': return 12;
+      default: return 0;
+    }
+  }
 
   @override
   void initState() {
@@ -119,10 +138,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadSavedRoute() async {
     final prefs = await SharedPreferences.getInstance();
     final savedRoute = prefs.getString('mss_last_route');
-    if (savedRoute != null && ['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(savedRoute)) {
+    if (savedRoute != null && ['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer', '/database'].contains(savedRoute)) {
       if (mounted) {
         setState(() {
           _currentRoute = savedRoute;
+          _loadedTabs.add(_getRouteIndex(savedRoute));
         });
       }
     }
@@ -342,8 +362,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Sidebar(
                 currentRoute: _currentRoute,
                 onNavigate: (route) {
-                  if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer'].contains(route)) {
-                    setState(() => _currentRoute = route);
+                  if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/installer', '/database'].contains(route)) {
+                    setState(() {
+                      _currentRoute = route;
+                      _loadedTabs.add(_getRouteIndex(route));
+                    });
                     _saveRoute(route);
                     Navigator.pop(context); // Close drawer
                   } else {
@@ -381,7 +404,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               currentRoute: _currentRoute,
               onNavigate: (route) {
                 if (['/dashboard', '/backup', '/containers', '/network', '/terminal', '/settings', '/maintenance', '/security', '/services', '/logs', '/cron', '/database', '/installer'].contains(route)) {
-                  setState(() => _currentRoute = route);
+                  setState(() {
+                    _currentRoute = route;
+                    _loadedTabs.add(_getRouteIndex(route));
+                  });
                   _saveRoute(route);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -556,30 +582,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     child: _buildMainContent(MediaQuery.of(context).size.width < 768),
                                   ),
                                 ),
-                      // 1: Containers
-                      const ContainersScreen(),
-                      // 2: Backup
-                      const BackupScreen(),
-                      // 3: Network
-                      const NetworkScreen(),
-                      // 4: Terminal
-                      const TerminalScreen(),
-                      // 5: Settings
-                      const SettingsScreen(),
-                      // 6: Maintenance
-                      const MaintenanceScreen(),
-                      // 7: Security
-                      const SecurityScreen(),
-                      // 8: Services
-                      const ServicesScreen(),
-                      // 9: Logs
-                      const LogsScreen(),
-                      // 10: Cron Jobs
-                      const CronScreen(),
-                      // 11: App Installer
-                      const AppInstallerScreen(),
-                      // 12: Database Manager
-                      const DatabaseManagerScreen(),
+                      // 1: Containers (Lazy loaded)
+                      _loadedTabs.contains(1) ? const ContainersScreen() : const SizedBox.shrink(),
+                      // 2: Backup (Lazy loaded)
+                      _loadedTabs.contains(2) ? const BackupScreen() : const SizedBox.shrink(),
+                      // 3: Network (Lazy loaded)
+                      _loadedTabs.contains(3) ? const NetworkScreen() : const SizedBox.shrink(),
+                      // 4: Terminal (Lazy loaded)
+                      _loadedTabs.contains(4) ? const TerminalScreen() : const SizedBox.shrink(),
+                      // 5: Settings (Lazy loaded)
+                      _loadedTabs.contains(5) ? const SettingsScreen() : const SizedBox.shrink(),
+                      // 6: Maintenance (Lazy loaded)
+                      _loadedTabs.contains(6) ? const MaintenanceScreen() : const SizedBox.shrink(),
+                      // 7: Security (Lazy loaded)
+                      _loadedTabs.contains(7) ? const SecurityScreen() : const SizedBox.shrink(),
+                      // 8: Services (Lazy loaded)
+                      _loadedTabs.contains(8) ? const ServicesScreen() : const SizedBox.shrink(),
+                      // 9: Logs (Lazy loaded)
+                      _loadedTabs.contains(9) ? const LogsScreen() : const SizedBox.shrink(),
+                      // 10: Cron Jobs (Lazy loaded)
+                      _loadedTabs.contains(10) ? const CronScreen() : const SizedBox.shrink(),
+                      // 11: App Installer (Lazy loaded)
+                      _loadedTabs.contains(11) ? const AppInstallerScreen() : const SizedBox.shrink(),
+                      // 12: Database Manager (Lazy loaded)
+                      _loadedTabs.contains(12) ? const DatabaseManagerScreen() : const SizedBox.shrink(),
                     ],
                   ),
                 ),

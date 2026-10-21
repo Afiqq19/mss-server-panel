@@ -13,76 +13,80 @@ class DatabaseController extends Controller
 
     private function getAllDbContainers(): array
     {
-        if (!file_exists('/var/run/docker.sock')) {
-            throw new \Exception("Docker socket not found on host.");
-        }
-        
-        $ch = curl_init("http://localhost/containers/json");
-        curl_setopt_array($ch, [
-            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 5,
-        ]);
-        $response = curl_exec($ch);
-        curl_close($ch);
+        return \Illuminate\Support\Facades\Cache::remember('docker_db_containers_list', 20, function () {
+            if (!file_exists('/var/run/docker.sock')) {
+                throw new \Exception("Docker socket not found on host.");
+            }
+            
+            $ch = curl_init("http://localhost/containers/json");
+            curl_setopt_array($ch, [
+                CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 3,
+            ]);
+            $response = curl_exec($ch);
+            curl_close($ch);
 
-        $dbContainers = [];
-        if ($response) {
-            $containers = json_decode($response, true) ?? [];
-            foreach ($containers as $c) {
-                $names = $c['Names'] ?? [];
-                $image = strtolower($c['Image'] ?? '');
-                
-                $matchedName = ltrim($names[0] ?? '', '/');
-                $isDb = false;
+            $dbContainers = [];
+            if ($response) {
+                $containers = json_decode($response, true) ?? [];
+                foreach ($containers as $c) {
+                    $names = $c['Names'] ?? [];
+                    $image = strtolower($c['Image'] ?? '');
+                    
+                    $matchedName = ltrim($names[0] ?? '', '/');
+                    $isDb = false;
 
-                if (str_contains($image, 'mysql') || str_contains($image, 'mariadb')) {
-                    $isDb = true;
-                } else {
-                    foreach ($names as $name) {
-                        $n = strtolower(ltrim($name, '/'));
-                        if (str_contains($n, 'db') || str_contains($n, 'mysql') || str_contains($n, 'mariadb')) {
-                            $isDb = true;
-                            break;
+                    if (str_contains($image, 'mysql') || str_contains($image, 'mariadb')) {
+                        $isDb = true;
+                    } else {
+                        foreach ($names as $name) {
+                            $n = strtolower(ltrim($name, '/'));
+                            if (str_contains($n, 'db') || str_contains($n, 'mysql') || str_contains($n, 'mariadb')) {
+                                $isDb = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if ($isDb) {
-                    $dbContainers[] = $matchedName;
+                    if ($isDb) {
+                        $dbContainers[] = $matchedName;
+                    }
                 }
             }
-        }
-        
-        if (empty($dbContainers)) {
-            throw new \Exception("Tidak ditemukan container database (MySQL/MariaDB) yang sedang berjalan.");
-        }
+            
+            if (empty($dbContainers)) {
+                $dbContainers = ['mss-db'];
+            }
 
-        return $dbContainers;
+            return $dbContainers;
+        });
     }
 
     private function getDbPassword(string $container): string
     {
-        $ch = curl_init("http://localhost/containers/{$container}/json");
-        curl_setopt_array($ch, [
-            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 5,
-        ]);
-        $inspectJson = curl_exec($ch);
-        curl_close($ch);
-        
-        if ($inspectJson) {
-            $inspectData = json_decode($inspectJson, true);
-            $envs = $inspectData['Config']['Env'] ?? [];
-            foreach ($envs as $envStr) {
-                if (str_starts_with($envStr, 'MYSQL_ROOT_PASSWORD=') || str_starts_with($envStr, 'MARIADB_ROOT_PASSWORD=')) {
-                    $parts = explode('=', $envStr, 2);
-                    return $parts[1] ?? 'rahasia123';
+        return \Illuminate\Support\Facades\Cache::remember("docker_db_pass_{$container}", 300, function () use ($container) {
+            $ch = curl_init("http://localhost/containers/{$container}/json");
+            curl_setopt_array($ch, [
+                CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 3,
+            ]);
+            $inspectJson = curl_exec($ch);
+            curl_close($ch);
+            
+            if ($inspectJson) {
+                $inspectData = json_decode($inspectJson, true);
+                $envs = $inspectData['Config']['Env'] ?? [];
+                foreach ($envs as $envStr) {
+                    if (str_starts_with($envStr, 'MYSQL_ROOT_PASSWORD=') || str_starts_with($envStr, 'MARIADB_ROOT_PASSWORD=')) {
+                        $parts = explode('=', $envStr, 2);
+                        return $parts[1] ?? 'rahasia123';
+                    }
                 }
             }
-        }
-        return 'rahasia123';
+            return 'rahasia123';
+        });
     }
 
     private function dockerExecDb(string $container, array $cmd): ?string

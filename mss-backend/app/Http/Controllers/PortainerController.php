@@ -30,59 +30,59 @@ class PortainerController extends Controller
      */
     public function index(): JsonResponse
     {
-        // Pengecekan cepat port Portainer agar tidak menggantung jika service mati
-        if (!$this->isPortainerReachable()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Portainer unreachable: service offline di localhost:9000',
-                'data' => []
-            ], 200);
-        }
-
-        try {
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'X-API-Key' => $this->apiKey,
-                ])
-                ->timeout(5)
-                ->get("{$this->baseUrl}/api/endpoints/{$this->endpointId}/docker/containers/json?all=1");
-
-            if (!$response->successful()) {
-                throw new \Exception("Portainer API error: Status {$response->status()}");
+        $cached = Cache::remember('portainer_containers_cached', 6, function () {
+            if (!$this->isPortainerReachable()) {
+                return null;
             }
 
-            $rawList = $response->json();
+            try {
+                $response = Http::withoutVerifying()
+                    ->withHeaders([
+                        'X-API-Key' => $this->apiKey,
+                    ])
+                    ->timeout(3)
+                    ->get("{$this->baseUrl}/api/endpoints/{$this->endpointId}/docker/containers/json?all=1");
 
-            $containers = collect($rawList)->map(function ($item) {
-                $name = isset($item['Names'][0]) ? ltrim($item['Names'][0], '/') : ($item['Id'] ?? 'unknown');
-                $ports = [];
-                if (!empty($item['Ports'])) {
-                    foreach ($item['Ports'] as $port) {
-                        if (isset($port['PublicPort']) && isset($port['PrivatePort'])) {
-                            $ports[] = "{$port['PublicPort']}:{$port['PrivatePort']}";
-                        }
-                    }
+                if (!$response->successful()) {
+                    return null;
                 }
 
-                return [
-                    'id' => substr($item['Id'] ?? '', 0, 12),
-                    'name' => $name,
-                    'state' => strtolower($item['State'] ?? 'unknown'),
-                    'status' => $item['Status'] ?? '',
-                    'image' => $item['Image'] ?? '',
-                    'ports' => implode(', ', $ports),
-                ];
-            })->values()->all();
+                $rawList = $response->json();
 
-            return $this->success($containers, 'Data container berhasil diambil');
+                return collect($rawList)->map(function ($item) {
+                    $name = isset($item['Names'][0]) ? ltrim($item['Names'][0], '/') : ($item['Id'] ?? 'unknown');
+                    $ports = [];
+                    if (!empty($item['Ports'])) {
+                        foreach ($item['Ports'] as $port) {
+                            if (isset($port['PublicPort']) && isset($port['PrivatePort'])) {
+                                $ports[] = "{$port['PublicPort']}:{$port['PrivatePort']}";
+                            }
+                        }
+                    }
 
-        } catch (Throwable $e) {
+                    return [
+                        'id' => substr($item['Id'] ?? '', 0, 12),
+                        'name' => $name,
+                        'state' => strtolower($item['State'] ?? 'unknown'),
+                        'status' => $item['Status'] ?? '',
+                        'image' => $item['Image'] ?? '',
+                        'ports' => implode(', ', $ports),
+                    ];
+                })->values()->all();
+            } catch (\Throwable $e) {
+                return null;
+            }
+        });
+
+        if ($cached === null) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Portainer unreachable: ' . $e->getMessage(),
+                'message' => 'Portainer unreachable: service offline',
                 'data' => []
             ], 200);
         }
+
+        return $this->success($cached, 'Data container berhasil diambil');
     }
 
     /**
@@ -126,6 +126,12 @@ class PortainerController extends Controller
      */
     protected function isPortainerReachable(): bool
     {
+        $cachedUrl = Cache::get('portainer_working_base_url');
+        if ($cachedUrl) {
+            $this->baseUrl = $cachedUrl;
+            return true;
+        }
+
         $parts = parse_url($this->baseUrl);
         $port = isset($parts['port']) ? (int) $parts['port'] : (($parts['scheme'] ?? '') === 'https' ? 9443 : 9000);
         $scheme = $parts['scheme'] ?? 'https';
@@ -141,10 +147,11 @@ class PortainerController extends Controller
         $candidateHosts = array_unique(array_filter($candidateHosts));
 
         foreach ($candidateHosts as $host) {
-            $fp = @fsockopen($host, $port, $errno, $errstr, 0.8);
+            $fp = @fsockopen($host, $port, $errno, $errstr, 0.25);
             if ($fp) {
                 fclose($fp);
                 $this->baseUrl = "{$scheme}://{$host}:{$port}";
+                Cache::put('portainer_working_base_url', $this->baseUrl, 300);
                 return true;
             }
         }

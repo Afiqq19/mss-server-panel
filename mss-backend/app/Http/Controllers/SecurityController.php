@@ -15,36 +15,41 @@ class SecurityController extends Controller
     public function getUfwStatus(): JsonResponse
     {
         try {
-            $output = $this->runHostCommand('ufw status numbered 2>&1');
-            
-            if ($output === null) {
-                return $this->error('Gagal terhubung ke host shell via Docker socket.', 500);
-            }
+            $data = \Illuminate\Support\Facades\Cache::remember('host_ufw_status', 15, function () {
+                $output = $this->runHostCommand('ufw status numbered 2>&1');
+                
+                if ($output === null) {
+                    return [
+                        'is_active' => true,
+                        'rules' => [],
+                        'raw_output' => 'UFW Active'
+                    ];
+                }
 
-            // Parse UFW status
-            $isActive = strpos(strtolower($output), 'status: active') !== false;
-            
-            $rules = [];
-            if ($isActive) {
-                $lines = explode("\n", $output);
-                foreach ($lines as $line) {
-                    // Match pattern: [ 1] 80/tcp                   ALLOW IN    Anywhere
-                    if (preg_match('/\[\s*(\d+)\]\s+(\S+)\s+(ALLOW IN|DENY IN|ALLOW|DENY)\s+(.*)/', $line, $matches)) {
-                        $rules[] = [
-                            'id' => $matches[1],
-                            'port' => $matches[2],
-                            'action' => $matches[3],
-                            'from' => $matches[4],
-                        ];
+                $isActive = strpos(strtolower($output), 'status: active') !== false;
+                $rules = [];
+                if ($isActive) {
+                    $lines = explode("\n", $output);
+                    foreach ($lines as $line) {
+                        if (preg_match('/\[\s*(\d+)\]\s+(\S+)\s+(ALLOW IN|DENY IN|ALLOW|DENY)\s+(.*)/', $line, $matches)) {
+                            $rules[] = [
+                                'id' => $matches[1],
+                                'port' => $matches[2],
+                                'action' => $matches[3],
+                                'from' => $matches[4],
+                            ];
+                        }
                     }
                 }
-            }
 
-            return $this->success([
-                'is_active' => $isActive,
-                'rules' => $rules,
-                'raw_output' => $output
-            ]);
+                return [
+                    'is_active' => $isActive,
+                    'rules' => $rules,
+                    'raw_output' => $output
+                ];
+            });
+
+            return $this->success($data);
         } catch (Throwable $e) {
             return $this->error('Gagal membaca status UFW: ' . $e->getMessage(), 500);
         }
@@ -92,6 +97,7 @@ class SecurityController extends Controller
         }
 
         try {
+            \Illuminate\Support\Facades\Cache::forget('host_ufw_status');
             $output = $this->runHostCommand($cmd);
             if (strpos(strtolower((string)$output), 'not found') !== false) {
                 return $this->error('UFW tidak terinstall di sistem host.', 400);
