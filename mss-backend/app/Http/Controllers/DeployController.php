@@ -103,6 +103,10 @@ class DeployController extends Controller
             $syncOutput = shell_exec("cp -r \"$backendPublicDir\"/* \"$frontendBuildDir\"/ 2>&1");
         }
 
+        // 6b. Reload Nginx configuration agar security headers dan hardening langsung aktif
+        shell_exec("docker exec mss-frontend nginx -s reload 2>&1");
+        shell_exec("docker exec mss-nginx nginx -s reload 2>&1");
+
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
 
