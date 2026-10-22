@@ -1,7 +1,7 @@
-﻿'use strict';
+'use strict';
 const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
-const CACHE_NAME = 'flutter-app-cache-v1.2.2-1792639432';
+const CACHE_NAME = 'flutter-app-cache-v1.4.0-build21';
 
 const RESOURCES = {"assets/AssetManifest.bin": "ad5a38f5bf8348d607844c770ff4c85a",
 "assets/AssetManifest.bin.json": "edfcf806797d19d34850e657d9977f9c",
@@ -134,8 +134,8 @@ self.addEventListener("fetch", (event) => {
   if (!RESOURCES[key]) {
     return;
   }
-  // If the URL is the index.html, perform an online-first request.
-  if (key == '/') {
+  // If the URL is index.html or version.json, perform an online-first request.
+  if (key == '/' || key == 'version.json' || key == 'index.html') {
     return onlineFirst(event);
   }
   event.respondWith(caches.open(CACHE_NAME)
