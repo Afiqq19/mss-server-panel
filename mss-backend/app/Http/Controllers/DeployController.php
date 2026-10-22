@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\HostCommand;
 use Illuminate\Http\Request;
 
 class DeployController extends Controller
 {
+    use HostCommand;
     /**
      * Endpoint Webhook Auto-Deploy untuk menarik kodingan terbaru dari GitHub
      * URL: /update-rahasia-panel?key=kunci-rahasia-mepal-2026 atau /api/update-rahasia-panel?key=...
@@ -106,9 +108,7 @@ class DeployController extends Controller
         }
 
         // 6b. Reload Nginx configuration agar security headers dan hardening langsung aktif
-        $nginxTest = shell_exec("docker exec mss-frontend nginx -t 2>&1");
-        $nginxReload = shell_exec("docker exec mss-frontend nginx -s reload 2>&1");
-        @shell_exec("docker exec mss-nginx nginx -s reload 2>&1");
+        $nginxOutput = $this->runHostCommand("docker exec mss-frontend nginx -t 2>&1 && docker exec mss-frontend nginx -s reload 2>&1");
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
@@ -124,7 +124,7 @@ class DeployController extends Controller
                 'git' => trim((string)$gitOutput),
                 'migrate' => trim((string)$migrate),
                 'cache' => trim((string)$optimize),
-                'nginx' => trim((string)$nginxTest) . "\n" . trim((string)$nginxReload)
+                'nginx' => trim((string)$nginxOutput)
             ]);
         }
 
@@ -133,7 +133,7 @@ class DeployController extends Controller
         $cleanMigrate = htmlspecialchars(trim((string)$migrate) ?: 'Tidak ada migrasi baru.');
         $cleanSeed = htmlspecialchars(trim((string)$seed) ?: 'Akun admin siap.');
         $cleanCache = htmlspecialchars(trim((string)$optimize) ?: 'Cache dibersihkan.');
-        $cleanNginx = htmlspecialchars(trim((string)$nginxTest . "\n" . (string)$nginxReload) ?: 'Nginx reloaded successfully.');
+        $cleanNginx = htmlspecialchars(trim((string)$nginxOutput) ?: 'Nginx reloaded successfully.');
         
         // Ambil versi saat ini dari pubspec.yaml
         $pubspecContent = @file_get_contents($repoDir . '/mss-frontend/pubspec.yaml');
