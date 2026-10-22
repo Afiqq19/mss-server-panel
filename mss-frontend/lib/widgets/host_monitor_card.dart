@@ -25,27 +25,15 @@ class HostMonitorCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.04),
-                Colors.white.withOpacity(0.01),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            color: const Color(0xFF0F172A).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.35), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).primaryColor.withOpacity(0.15),
+                color: Theme.of(context).primaryColor.withOpacity(0.12),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
-                spreadRadius: 2,
-              ),
-              BoxShadow(
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
-                blurRadius: 10,
-                spreadRadius: -2,
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -161,16 +149,21 @@ class HostMonitorCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
+                          color: const Color(0xFF020617).withOpacity(0.7),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: (stats.batteryPercent > 20
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFF43F5E)).withOpacity(0.35),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               stats.isCharging
-                                  ? Icons.battery_charging_full
-                                  : Icons.battery_std,
+                                  ? Icons.battery_charging_full_rounded
+                                  : Icons.battery_std_rounded,
                               color: stats.batteryPercent > 20
                                   ? const Color(0xFF10B981)
                                   : const Color(0xFFF43F5E),
@@ -196,15 +189,22 @@ class HostMonitorCard extends StatelessWidget {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF020617).withOpacity(0.7),
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: (stats.cpuTemperature! > 75
+                                  ? const Color(0xFFF43F5E)
+                                  : const Color(0xFFF59E0B)).withOpacity(0.35),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.thermostat,
-                                color: Color(0xFFF59E0B),
+                              Icon(
+                                Icons.thermostat_rounded,
+                                color: stats.cpuTemperature! > 75
+                                    ? const Color(0xFFF43F5E)
+                                    : const Color(0xFFF59E0B),
                                 size: 18,
                               ),
                               const SizedBox(width: 4),

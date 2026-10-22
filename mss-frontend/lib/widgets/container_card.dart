@@ -25,33 +25,46 @@ class _ContainerCardState extends State<ContainerCard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1E293B)),
+        ),
         title: Row(
           children: [
-            Icon(
-              action == 'stop' ? Icons.warning_amber : Icons.help_outline,
-              color: action == 'stop'
-                  ? const Color(0xFFF43F5E)
-                  : const Color(0xFF06B6D4),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: action == 'stop'
+                    ? const Color(0xFFF43F5E).withOpacity(0.15)
+                    : const Color(0xFF06B6D4).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                action == 'stop' ? Icons.warning_amber_rounded : Icons.help_outline_rounded,
+                color: action == 'stop'
+                    ? const Color(0xFFF43F5E)
+                    : const Color(0xFF06B6D4),
+                size: 22,
+              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Text(
               'Konfirmasi $actionLabel',
-              style: const TextStyle(color: Colors.white, fontSize: 18),
+              style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         content: Text(
           'Apakah Anda yakin ingin mengeksekusi aksi "$actionLabel" pada container "${widget.container.name}"?',
-          style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14),
+          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               'Batal',
-              style: TextStyle(color: Color(0xFF94A3B8)),
+              style: TextStyle(color: Color(0xFF64748B)),
             ),
           ),
           ElevatedButton(
@@ -61,8 +74,11 @@ class _ContainerCardState extends State<ContainerCard> {
                   : (action == 'restart'
                         ? const Color(0xFFF59E0B)
                         : const Color(0xFF10B981)),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             onPressed: () async {
@@ -79,7 +95,6 @@ class _ContainerCardState extends State<ContainerCard> {
             child: Text(
               'Ya, $actionLabel',
               style: const TextStyle(
-                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -97,27 +112,25 @@ class _ContainerCardState extends State<ContainerCard> {
         : const Color(0xFFF43F5E);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.04),
-                Colors.white.withOpacity(0.01),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(18),
+            color: const Color(0xFF0F172A).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isRunning
-                  ? const Color(0xFF10B981).withOpacity(0.3)
-                  : const Color(0xFFF43F5E).withOpacity(0.3),
-              width: 1.5,
+              color: statusColor.withOpacity(0.35),
+              width: 1.2,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,19 +144,40 @@ class _ContainerCardState extends State<ContainerCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          widget.container.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                isRunning ? Icons.dns_rounded : Icons.pause_circle_outline_rounded,
+                                size: 16,
+                                color: statusColor,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                widget.container.name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 9,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
@@ -156,14 +190,22 @@ class _ContainerCardState extends State<ContainerCard> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.circle, size: 6, color: statusColor),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               widget.container.state.toUpperCase(),
                               style: TextStyle(
                                 fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: statusColor,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ],
@@ -171,18 +213,27 @@ class _ContainerCardState extends State<ContainerCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  // Image name
-                  Text(
-                    widget.container.image,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF64748B),
+                  const SizedBox(height: 8),
+                  // Image name with code pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF020617).withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF1E293B)),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: Text(
+                      widget.container.image,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        color: Color(0xFF94A3B8),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   // Ports & ID
                   Row(
                     children: [
@@ -190,26 +241,28 @@ class _ContainerCardState extends State<ContainerCard> {
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
-                            vertical: 2,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF06B6D4).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.25)),
                           ),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
-                                Icons.hub,
+                                Icons.settings_ethernet_rounded,
                                 size: 12,
                                 color: Color(0xFF06B6D4),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 5),
                               Text(
                                 widget.container.ports,
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  fontFamily: 'monospace',
-                                  color: Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF06B6D4),
                                 ),
                               ),
                             ],
@@ -217,12 +270,19 @@ class _ContainerCardState extends State<ContainerCard> {
                         ),
                         const SizedBox(width: 8),
                       ],
-                      Text(
-                        '#${widget.container.id}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontFamily: 'monospace',
-                          color: Color(0xFF475569),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E293B).withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '#${widget.container.id.substring(0, widget.container.id.length > 8 ? 8 : widget.container.id.length)}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            color: Color(0xFF64748B),
+                          ),
                         ),
                       ),
                     ],
@@ -230,14 +290,14 @@ class _ContainerCardState extends State<ContainerCard> {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-              // Action Buttons Bar (Start, Stop, Restart) (Bab 6)
+              // Action Buttons Bar (Start, Stop, Restart)
               _isLoading
                   ? const Center(
                       child: SizedBox(
-                        height: 24,
-                        width: 24,
+                        height: 22,
+                        width: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -252,7 +312,7 @@ class _ContainerCardState extends State<ContainerCard> {
                           Expanded(
                             child: _buildActionButton(
                               label: 'Start',
-                              icon: Icons.play_arrow,
+                              icon: Icons.play_arrow_rounded,
                               color: const Color(0xFF10B981),
                               onPressed: () =>
                                   _confirmAndExecute(context, 'start'),
@@ -260,19 +320,10 @@ class _ContainerCardState extends State<ContainerCard> {
                           ),
                         if (isRunning) ...[
                           // Logs Button
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF06B6D4),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              backgroundColor:
-                                  const Color(0xFF06B6D4).withOpacity(0.1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            icon: const Icon(Icons.notes, size: 18),
-                            label: const Text('Logs'),
+                          _buildActionButton(
+                            label: 'Logs',
+                            icon: Icons.terminal_rounded,
+                            color: const Color(0xFF06B6D4),
                             onPressed: () {
                               showDialog(
                                 context: context,
@@ -282,21 +333,23 @@ class _ContainerCardState extends State<ContainerCard> {
                           ),
                           const SizedBox(width: 8),
 
-                          // Start / Stop Button
+                          // Restart Button
                           Expanded(
                             child: _buildActionButton(
                               label: 'Restart',
-                              icon: Icons.refresh,
+                              icon: Icons.refresh_rounded,
                               color: const Color(0xFFF59E0B),
                               onPressed: () =>
                                   _confirmAndExecute(context, 'restart'),
                             ),
                           ),
                           const SizedBox(width: 8),
+
+                          // Stop Button
                           Expanded(
                             child: _buildActionButton(
                               label: 'Stop',
-                              icon: Icons.stop,
+                              icon: Icons.stop_rounded,
                               color: const Color(0xFFF43F5E),
                               onPressed: () =>
                                   _confirmAndExecute(context, 'stop'),
@@ -318,30 +371,34 @@ class _ContainerCardState extends State<ContainerCard> {
     required Color color,
     required VoidCallback onPressed,
   }) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.35)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: color,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withOpacity(0.35)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
