@@ -36,9 +36,12 @@ class _AppInstallerScreenState extends State<AppInstallerScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
+        final err = e.toString().replaceAll('Exception: ', '');
+        if (!err.contains('Sesi login telah berakhir')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(err), backgroundColor: const Color(0xFFF43F5E)),
+          );
+        }
       }
     }
   }

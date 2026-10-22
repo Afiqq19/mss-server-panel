@@ -98,6 +98,10 @@ class ApiService extends ChangeNotifier {
     final response = await http
         .get(Uri.parse('$_baseUrl$endpoint'), headers: _headers)
         .timeout(const Duration(seconds: 15));
+    if (response.statusCode == 401) {
+      await logout();
+      throw Exception('Sesi login telah berakhir. Silakan login kembali.');
+    }
     final data = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (useCache && data is Map<String, dynamic>) {
@@ -116,6 +120,10 @@ class ApiService extends ChangeNotifier {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 180)); // Increased to 180s for docker pull
+    if (response.statusCode == 401) {
+      await logout();
+      throw Exception('Sesi login telah berakhir. Silakan login kembali.');
+    }
     final data = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       // Invalidate related caches on mutation
@@ -190,6 +198,9 @@ class ApiService extends ChangeNotifier {
           .get(Uri.parse('$_baseUrl/host-stats'), headers: _headers)
           .timeout(const Duration(seconds: 10));
 
+      if (response.statusCode == 401) {
+        await logout();
+      }
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && (data['status'] == 'success' || data['data'] != null)) {
         return HostStatsModel.fromJson(data['data']);
@@ -227,6 +238,11 @@ class ApiService extends ChangeNotifier {
           .get(Uri.parse('$_baseUrl/containers'), headers: _headers)
           .timeout(const Duration(seconds: 10));
 
+      if (response.statusCode == 401) {
+        await logout();
+        return [];
+      }
+
       final data = jsonDecode(response.body);
       final list = data['data'] as List? ?? [];
       final result = list.map((item) => ContainerModel.fromJson(item)).toList();
@@ -249,6 +265,11 @@ class ApiService extends ChangeNotifier {
           headers: _headers,
         )
         .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 401) {
+      await logout();
+      throw Exception('Sesi login telah berakhir. Silakan login kembali.');
+    }
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['status'] == 'success') {
@@ -275,6 +296,11 @@ class ApiService extends ChangeNotifier {
       final response = await http
           .get(Uri.parse('$_baseUrl/app-launchers'), headers: _headers)
           .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        await logout();
+        return [];
+      }
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['data'] != null) {

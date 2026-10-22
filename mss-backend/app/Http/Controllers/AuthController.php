@@ -59,9 +59,9 @@ class AuthController extends Controller
             return $this->error('Username/Email atau kata sandi tidak valid.', 401);
         }
 
-        // Hapus token lama untuk user ini agar sesi rapi dan aman
-        $user->tokens()->where('name', 'mepal-auth-token')->delete();
-        $token = $user->createToken('mepal-auth-token', ['*'], now()->addDays(7))->plainTextToken;
+        // Bersihkan token yang sudah expired saja agar multi-device (Laptop dan HP) bisa aktif bersamaan
+        $user->tokens()->where('expires_at', '<', now())->delete();
+        $token = $user->createToken('mepal-auth-token', ['*'], now()->addDays(30))->plainTextToken;
 
         return $this->success([
             'token' => $token,
