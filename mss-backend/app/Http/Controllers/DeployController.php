@@ -12,6 +12,8 @@ class DeployController extends Controller
      */
     public function update(Request $request)
     {
+        $wantsJson = ($request->wantsJson() || $request->isJson()) && !$request->acceptsHtml();
+
         // 1. Anti-Brute-Force Rate Limiting (Maksimal 5 percobaan salah per IP)
         $throttleKey = 'deploy-attempt:' . $request->ip();
         if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
