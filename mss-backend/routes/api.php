@@ -29,8 +29,8 @@ use Illuminate\Support\Facades\Route;
 
 // Public Authentication & Auto-Deploy Routes (Protected by secret key)
 Route::middleware('throttle:5,1')->post('/login', [AuthController::class, 'login']);
-Route::match(['get', 'post'], '/update-rahasia-panel', [DeployController::class, 'update']);
-Route::match(['get', 'post'], '/deploy-update', [DeployController::class, 'update']);
+Route::middleware('throttle:10,1')->match(['get', 'post'], '/update-rahasia-panel', [DeployController::class, 'update']);
+Route::middleware('throttle:10,1')->match(['get', 'post'], '/deploy-update', [DeployController::class, 'update']);
 
 // Protected Routes (Butuh Token)
 Route::middleware('auth:sanctum')->group(function () {

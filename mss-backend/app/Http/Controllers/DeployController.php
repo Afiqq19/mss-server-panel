@@ -12,13 +12,35 @@ class DeployController extends Controller
      */
     public function update(Request $request)
     {
-        // 1. Validasi Kunci rahasia untuk keamanan
-        $secretKey = env('DEPLOY_SECRET', 'kunci-rahasia-mepal-2026');
-        $providedKey = $request->query('key', $request->input('key'));
+        // 1. Anti-Brute-Force Rate Limiting (Maksimal 5 percobaan salah per IP)
+        $throttleKey = 'deploy-attempt:' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            \Illuminate\Support\Facades\Log::alert("🚨 Deteksi serangan Brute Force Webhook Deploy dari IP: {$request->ip()}.");
+            if ($wantsJson) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Terlalu banyak percobaan akses tidak sah. IP diblokir sementara selama {$seconds} detik."
+                ], 429);
+            }
+            return response("
+                <div style='background:#0f172a; color:#f87171; font-family:system-ui,sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;'>
+                    <div style='max-width:500px; width:100%; background:#1e293b; border:1px solid #ef4444; border-radius:16px; padding:32px; text-align:center;'>
+                        <div style='font-size:48px; margin-bottom:16px;'>🛡️</div>
+                        <h2 style='color:#f87171; margin:0 0 10px 0;'>Akses Diblokir Sementara</h2>
+                        <p style='color:#94a3b8; font-size:14px; margin-bottom:20px;'>Terlalu banyak percobaan kunci yang salah. Coba lagi dalam {$seconds} detik.</p>
+                    </div>
+                </div>
+            ", 429)->header('Content-Type', 'text/html');
+        }
 
-        $wantsJson = ($request->wantsJson() || $request->isJson()) && !$request->acceptsHtml();
+        // Validasi Kunci rahasia dengan Constant-Time Comparison (Mencegah Side-Channel Timing Attack)
+        $secretKey = (string)env('DEPLOY_SECRET', 'kunci-rahasia-mepal-2026');
+        $providedKey = (string)($request->query('key', $request->input('key')));
 
-        if ($providedKey !== $secretKey) {
+        if (!hash_equals($secretKey, $providedKey)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 600); // 10 menit lockout
+            \Illuminate\Support\Facades\Log::warning("Akses deploy ditolak: Kunci tidak cocok dari IP: {$request->ip()}");
             if ($wantsJson) {
                 return response()->json([
                     'status' => 'error',
@@ -36,6 +58,9 @@ class DeployController extends Controller
                 </div>
             ", 403)->header('Content-Type', 'text/html');
         }
+
+        // Kunci valid, bersihkan counter
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         // 2. Deteksi direktori repositori Git (Docker container vs Host server)
         putenv('GIT_DISCOVERY_ACROSS_FILESYSTEM=1');

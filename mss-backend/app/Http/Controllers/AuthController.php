@@ -25,6 +25,14 @@ class AuthController extends Controller
             'password' => 'required|string|min:6|max:100',
         ]);
 
+        // 1. Anti-Brute-Force Rate Limiter (Maksimal 5 percobaan gagal per IP, lockout 300 detik)
+        $throttleKey = 'login-attempt:' . $request->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            Log::alert("🚨 Deteksi serangan Brute Force Login dari IP: {$request->ip()}. Akses ditolak.");
+            return $this->error("Terlalu banyak percobaan login gagal. Demi keamanan server, akses diblokir sementara selama {$seconds} detik.", 429);
+        }
+
         $loginInput = trim((string)($request->input('email') ?? $request->input('username') ?? ''));
         if (empty($loginInput)) {
             return $this->error('Username atau email wajib diisi.', 422);
@@ -53,11 +61,15 @@ class AuthController extends Controller
 
         // Timing-safe check & generic error message to prevent account enumeration
         if (!$user || !Hash::check($request->password, $user->password)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 300);
             // Mitigasi timing attack & brute-force delay (250ms)
             usleep(250000);
             Log::warning("Percobaan login gagal untuk: {$loginInput} dari IP: " . $request->ip());
             return $this->error('Username/Email atau kata sandi tidak valid.', 401);
         }
+
+        // Login berhasil, bersihkan riwayat brute force
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         // Bersihkan token yang sudah expired saja agar multi-device (Laptop dan HP) bisa aktif bersamaan
         $user->tokens()->where('expires_at', '<', now())->delete();

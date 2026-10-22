@@ -542,11 +542,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'MSS Server Panel v1.2.0 • Toshiba Linux Node',
+                            'MSS Server Panel v1.4.0 • Zero-Trust Security Edition',
                             style: TextStyle(
                               fontSize: 10.5,
                               letterSpacing: 0.8,
-                              color: Colors.white.withOpacity(0.25),
+                              color: Colors.white.withOpacity(0.35),
                             ),
                           ),
                         ],

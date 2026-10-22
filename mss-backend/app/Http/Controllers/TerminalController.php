@@ -30,6 +30,24 @@ class TerminalController extends Controller
             ]);
         }
 
+        // Proteksi Keamanan Zero-Trust: Cegah perintah destruktif yang dapat merusak OS host
+        $dangerousPatterns = [
+            '/\brm\s+-[a-zA-Z]*r[a-zA-Z]*f\s+[\/\*]/', // rm -rf / atau rm -rf /*
+            '/\bmkfs(\.[a-zA-Z0-9]+)?\b/i',             // format hardisk
+            '/:\(\)\s*\{\s*:\|:&\s*\};:/',              // fork bomb
+            '/\bdd\s+if=.*of=\/dev\/(sd[a-z]|nvme|loop)/i', // raw disk overwrite
+            '/\bchmod\s+(-R\s+)?000\s+\//',             // lock out root permissions
+        ];
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $cmd)) {
+                \Illuminate\Support\Facades\Log::critical("Percobaan eksekusi perintah berbahaya diblokir: {$cmd} dari User ID: " . ($request->user()?->id ?? 'unknown'));
+                return response()->json([
+                    'status' => 'error',
+                    'output' => '🛡️ Proteksi Zero-Trust Aktif: Perintah ini diblokir secara otomatis demi mencegah kerusakan fatal pada sistem host.'
+                ], 403);
+            }
+        }
+
         try {
             $output = $this->runHostCommand($cmd);
             
