@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png?v=mss4"/>
 
   <title>MSS Server Panel</title>
-  <link rel="manifest" href="manifest.json?v=7">
+  <link rel="manifest" href="manifest.json?v=8">
 
   <style>
     * { box-sizing: border-box; }
@@ -183,6 +183,103 @@
       min-height: 18px;
       transition: opacity 0.3s ease;
     }
+
+    /* Floating Install Banner for Mobile */
+    #pwa-install-bar {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+      backdrop-filter: blur(12px);
+      border: 1.5px solid #06B6D4;
+      padding: 10px 18px;
+      border-radius: 50px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(6, 182, 212, 0.35);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      animation: bounceIn 0.5s ease-out;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: translate(-50%, 60px); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    #pwa-install-bar .install-icon {
+      font-size: 20px;
+    }
+
+    #pwa-install-bar .install-label {
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    #pwa-install-bar .install-btn {
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      color: #030712;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.4);
+    }
+
+    /* PWA Guide Modal */
+    #pwa-guide-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .guide-card {
+      background: #0F172A;
+      border: 1.5px solid #1E293B;
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      color: #FFFFFF;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .guide-num {
+      width: 26px;
+      height: 26px;
+      background: #06B6D4;
+      color: #030712;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body style="background-color: #030712;">
@@ -207,6 +304,38 @@
     <div class="status-text" id="status-label">Menginisialisasi Engine...</div>
   </div>
 
+  <!-- Floating Install App Button for Mobile -->
+  <div id="pwa-install-bar" onclick="handlePwaClick()">
+    <span class="install-icon">📲</span>
+    <span class="install-label">Pasang Aplikasi MSS</span>
+    <button class="install-btn">INSTAL</button>
+  </div>
+
+  <!-- Modal Panduan Instalasi Manual -->
+  <div id="pwa-guide-modal" onclick="this.style.display='none'">
+    <div class="guide-card" onclick="event.stopPropagation()">
+      <div style="font-size:18px; font-weight:800; margin-bottom:4px; color:#06B6D4;">📲 Cara Pasang di HP:</div>
+      <div style="font-size:12px; color:#94A3B8; margin-bottom:20px;">Pasang langsung ke menu aplikasi HP Bapak tanpa Play Store:</div>
+      
+      <div class="guide-step">
+        <div class="guide-num">1</div>
+        <div style="font-size:13px; color:#E2E8F0;">Tekan tombol titik tiga (<strong>⋮</strong>) di pojok kanan atas browser Chrome HP.</div>
+      </div>
+      
+      <div class="guide-step">
+        <div class="guide-num">2</div>
+        <div style="font-size:13px; color:#E2E8F0;">Pilih <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Pasang Aplikasi"</strong>.</div>
+      </div>
+      
+      <div class="guide-step">
+        <div class="guide-num">3</div>
+        <div style="font-size:13px; color:#E2E8F0;">Klik <strong>"Tambahkan / Instal"</strong>. Ikon MSS Panel akan langsung muncul di HP Bapak!</div>
+      </div>
+
+      <button onclick="document.getElementById('pwa-guide-modal').style.display='none'" style="width:100%; margin-top:10px; background:#1E293B; color:#06B6D4; border:1px solid #06B6D4; padding:10px; border-radius:12px; font-weight:700; cursor:pointer;">Mengerti, Tutup</button>
+    </div>
+  </div>
+
   <script>
     // Rotasi status text dinamis
     (function() {
@@ -229,6 +358,37 @@
         }, 1500);
       }
     })();
+
+    // PWA Install Prompt Capture
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBar = document.getElementById('pwa-install-bar');
+      if (installBar && window.innerWidth <= 768) {
+        installBar.style.display = 'flex';
+      }
+    });
+
+    // Tampilkan tombol pasang di HP jika di layar mobile
+    setTimeout(() => {
+      if (window.innerWidth <= 768 && !window.matchMedia('(display-mode: standalone)').matches) {
+        const installBar = document.getElementById('pwa-install-bar');
+        if (installBar) installBar.style.display = 'flex';
+      }
+    }, 2500);
+
+    function handlePwaClick() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          document.getElementById('pwa-install-bar').style.display = 'none';
+        });
+      } else {
+        document.getElementById('pwa-guide-modal').style.display = 'flex';
+      }
+    }
 
     // Sembunyikan preloader setelah Flutter siap
     window.addEventListener('flutter-first-frame', function() {
