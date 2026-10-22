@@ -49,14 +49,15 @@ class BackupController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $files = [];
-            $lastBackup = null;
-            $discoveredProjects = [];
-            
-            // 1. Cari container Nextcloud
-            $nextcloudContainer = $this->findRunningContainer('nextcloud') ?: 'nextcloud_nas';
-            
-            $nextcloudOutput = null;
+            $data = \Illuminate\Support\Facades\Cache::remember('backup_history_cached_list', 25, function () {
+                $files = [];
+                $lastBackup = null;
+                $discoveredProjects = [];
+                
+                // 1. Cari container Nextcloud
+                $nextcloudContainer = $this->findRunningContainer('nextcloud') ?: 'nextcloud_nas';
+                
+                $nextcloudOutput = null;
             if ($nextcloudContainer) {
                 // Ambil daftar folder untuk deteksi proyek yang kosong
                 $folderCmd = ['sh', '-c', 'find /var/www/html/data/mss/files/Backup-Server -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null'];
@@ -172,12 +173,15 @@ class BackupController extends Controller
                 $discoveredProjects = ['E-Aspira', 'portofolio', 'Panel-MSS'];
             }
 
-            return $this->success([
-                'total_backups' => count($files),
-                'last_backup' => $lastBackup,
-                'projects' => array_values($discoveredProjects),
-                'files' => $files,
-            ]);
+                return [
+                    'total_backups' => count($files),
+                    'last_backup' => $lastBackup,
+                    'projects' => array_values($discoveredProjects),
+                    'files' => $files,
+                ];
+            });
+
+            return $this->success($data);
 
         } catch (Throwable $e) {
             return $this->error('Gagal membaca direktori backup: ' . $e->getMessage(), 500);
@@ -508,6 +512,9 @@ class BackupController extends Controller
                 $this->dockerExec($nextcloudContainer, ['su', '-s', '/bin/sh', 'www-data', '-c', 'php occ files:scan --path="/mss/files/Backup-Server"']);
                 $this->dockerExec($nextcloudContainer, ['su', '-s', '/bin/sh', 'www-data', '-c', 'php occ files:scan --all']);
             }
+
+            // Hapus cache daftar riwayat backup agar langsung sinkron
+            \Illuminate\Support\Facades\Cache::forget('backup_history_cached_list');
 
             return $this->success([
                 'target_project' => $rawProject,

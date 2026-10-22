@@ -199,27 +199,30 @@ class DatabaseController extends Controller
     public function getDatabases(): JsonResponse
     {
         try {
-            $containers = $this->getAllDbContainers();
-            $allDbs = [];
+            $allDbs = \Illuminate\Support\Facades\Cache::remember('db_databases_list_cached', 25, function () {
+                $containers = $this->getAllDbContainers();
+                $dbsList = [];
 
-            foreach ($containers as $c) {
-                $password = $this->getDbPassword($c);
-                $client = $this->resolveDbCommand($c, 'client');
-                $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
-                $output = $this->dockerExecDb($c, $cmd);
-                
-                if ($output && !str_contains(strtolower($output), 'oci runtime') && !str_contains(strtolower($output), 'executable file not found') && !str_contains(strtolower($output), 'error ')) {
-                    $dbs = array_filter(explode("\n", $output));
-                    foreach ($dbs as $db) {
-                        $db = trim($db);
-                        if (!in_array($db, ['information_schema', 'performance_schema', 'sys', 'mysql'])) {
-                            $allDbs[] = "[$c] $db";
+                foreach ($containers as $c) {
+                    $password = $this->getDbPassword($c);
+                    $client = $this->resolveDbCommand($c, 'client');
+                    $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', 'SHOW DATABASES;'];
+                    $output = $this->dockerExecDb($c, $cmd);
+                    
+                    if ($output && !str_contains(strtolower($output), 'oci runtime') && !str_contains(strtolower($output), 'executable file not found') && !str_contains(strtolower($output), 'error ')) {
+                        $dbs = array_filter(explode("\n", $output));
+                        foreach ($dbs as $db) {
+                            $db = trim($db);
+                            if (!in_array($db, ['information_schema', 'performance_schema', 'sys', 'mysql'])) {
+                                $dbsList[] = "[$c] $db";
+                            }
                         }
                     }
                 }
-            }
+                return array_values(array_unique($dbsList));
+            });
             
-            return $this->success(['databases' => array_values(array_unique($allDbs))]);
+            return $this->success(['databases' => $allDbs]);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -232,6 +235,7 @@ class DatabaseController extends Controller
             'container' => 'nullable|string'
         ]);
         try {
+            \Illuminate\Support\Facades\Cache::forget('db_databases_list_cached');
             $container = $request->input('container');
             if (!$container) {
                 $containers = $this->getAllDbContainers();

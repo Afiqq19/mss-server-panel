@@ -63,7 +63,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
   Future<void> _refreshQuietly() async {
     try {
       final api = context.read<ApiService>();
-      final data = await api.fetchContainers();
+      final data = await api.fetchContainers(forceRefresh: true);
       if (mounted) setState(() => _containers = data);
     } catch (_) {}
   }

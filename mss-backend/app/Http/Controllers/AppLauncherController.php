@@ -16,10 +16,12 @@ class AppLauncherController extends Controller
      */
     public function index(): JsonResponse
     {
-        $launchers = AppLauncher::where('is_active', true)
-            ->orderBy('order', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+        $launchers = \Illuminate\Support\Facades\Cache::remember('app_launchers_active_list', 60, function () {
+            return AppLauncher::where('is_active', true)
+                ->orderBy('order', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+        });
 
         return $this->success($launchers, 'Daftar App Launcher berhasil dimuat');
     }
@@ -40,6 +42,7 @@ class AppLauncherController extends Controller
         ]);
 
         $launcher = AppLauncher::create($validated);
+        \Illuminate\Support\Facades\Cache::forget('app_launchers_active_list');
 
         return $this->success($launcher, 'App Launcher berhasil ditambahkan', 201);
     }
@@ -60,6 +63,7 @@ class AppLauncherController extends Controller
         ]);
 
         $appLauncher->update($validated);
+        \Illuminate\Support\Facades\Cache::forget('app_launchers_active_list');
 
         return $this->success($appLauncher, 'App Launcher berhasil diperbarui');
     }
@@ -70,6 +74,7 @@ class AppLauncherController extends Controller
     public function destroy(AppLauncher $appLauncher): JsonResponse
     {
         $appLauncher->delete();
+        \Illuminate\Support\Facades\Cache::forget('app_launchers_active_list');
 
         return $this->success(null, 'App Launcher berhasil dihapus');
     }

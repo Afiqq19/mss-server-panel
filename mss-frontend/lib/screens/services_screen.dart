@@ -26,8 +26,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
     setState(() => _isLoading = true);
     try {
       final api = Provider.of<ApiService>(context, listen: false);
-      final svcRes = await api.get('/services');
-      final procRes = await api.get('/services/top');
+      final results = await Future.wait([
+        api.get('/services'),
+        api.get('/services/top'),
+      ]);
+      final svcRes = results[0];
+      final procRes = results[1];
       if (mounted) {
         setState(() {
           _services = svcRes['data']['services'] ?? [];

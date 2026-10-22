@@ -63,7 +63,7 @@ class _BackupScreenState extends State<BackupScreen> {
   Future<void> _refreshBackupsQuietly() async {
     try {
       final api = context.read<ApiService>();
-      final data = await api.fetchBackups();
+      final data = await api.fetchBackups(forceRefresh: true);
       if (mounted) {
         setState(() {
           _backupData = data;

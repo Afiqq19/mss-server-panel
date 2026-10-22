@@ -16,22 +16,24 @@ class HostStatsController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $cpuUsage = $this->getCpuUsage();
-            $ram = $this->getRamUsage();
-            $disk = $this->getDiskUsage();
-            $temperature = $this->getCpuTemperature();
-            $battery = $this->getBatteryStatus();
+            $data = \Illuminate\Support\Facades\Cache::remember('host_stats_snapshot', 3, function () {
+                $cpuUsage = $this->getCpuUsage();
+                $ram = $this->getRamUsage();
+                $disk = $this->getDiskUsage();
+                $temperature = $this->getCpuTemperature();
+                $battery = $this->getBatteryStatus();
 
-            $data = [
-                'cpu_usage_percent' => $cpuUsage,
-                'ram_total_gb' => $ram['total_gb'],
-                'ram_used_gb' => $ram['used_gb'],
-                'disk_total_gb' => $disk['total_gb'],
-                'disk_used_gb' => $disk['used_gb'],
-                'cpu_temperature' => $temperature,
-                'battery_percent' => $battery['percent'],
-                'is_charging' => $battery['is_charging'],
-            ];
+                return [
+                    'cpu_usage_percent' => $cpuUsage,
+                    'ram_total_gb' => $ram['total_gb'],
+                    'ram_used_gb' => $ram['used_gb'],
+                    'disk_total_gb' => $disk['total_gb'],
+                    'disk_used_gb' => $disk['used_gb'],
+                    'cpu_temperature' => $temperature,
+                    'battery_percent' => $battery['percent'],
+                    'is_charging' => $battery['is_charging'],
+                ];
+            });
 
             return $this->success($data);
 

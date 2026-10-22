@@ -16,7 +16,13 @@ trait HostCommand
             return shell_exec($cmd . ' 2>&1');
         }
 
-        // Gunakan image yang pasti sudah ada di server (nginx:alpine atau tsl0922/ttyd)
+        // 1. Cepat: Coba eksekusi langsung via container mss-ttyd yang sedang berjalan (20ms vs 3000ms)
+        $fastOutput = $this->execViaRunningTtyd($socket, $cmd);
+        if ($fastOutput !== null) {
+            return $fastOutput;
+        }
+
+        // 2. Fallback: Buat temporary task container jika mss-ttyd offline
         $images = ['nginx:alpine', 'tsl0922/ttyd:latest', 'alpine:latest'];
         $containerId = null;
 
@@ -42,6 +48,78 @@ trait HostCommand
         $this->dockerSocketRequest($socket, "/containers/$containerId?v=true&force=true", 'DELETE');
 
         return $this->stripDockerStreamHeader($rawLogs ?? '');
+    }
+
+    /**
+     * Eksekusi ultra-cepat (20ms) memanfaatkan container mss-ttyd yang sudah berjalan dengan privileged & pid host
+     */
+    private function execViaRunningTtyd(string $socket, string $cmd): ?string
+    {
+        try {
+            $ch = curl_init("http://localhost/containers/mss-ttyd/json");
+            curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+            $res = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($code !== 200 || empty($res)) {
+                return null;
+            }
+
+            $info = json_decode($res, true);
+            if (!isset($info['State']['Running']) || $info['State']['Running'] !== true) {
+                return null;
+            }
+
+            $payload = json_encode([
+                'AttachStdout' => true,
+                'AttachStderr' => true,
+                'Tty' => false,
+                'Cmd' => ['nsenter', '-t', '1', '-m', '-u', '-i', '-n', '-p', 'sh', '-c', "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin " . $cmd]
+            ]);
+
+            $ch = curl_init("http://localhost/containers/mss-ttyd/exec");
+            curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $execRes = curl_exec($ch);
+            $execCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($execCode !== 201 || empty($execRes)) {
+                return null;
+            }
+
+            $execData = json_decode($execRes, true);
+            $execId = $execData['Id'] ?? null;
+            if (!$execId) {
+                return null;
+            }
+
+            $startPayload = json_encode(['Detach' => false, 'Tty' => false]);
+            $ch = curl_init("http://localhost/exec/{$execId}/start");
+            curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $startPayload);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $output = curl_exec($ch);
+            curl_close($ch);
+
+            if ($output === false || $output === null) {
+                return null;
+            }
+
+            return $this->stripDockerStreamHeader($output);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

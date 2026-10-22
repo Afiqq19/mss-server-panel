@@ -68,15 +68,41 @@ class ApiService extends ChangeNotifier {
     return headers;
   }
 
+  // Cache Memory Client-Side untuk transisi menu instan (0ms) tanpa loading berulang
+  final Map<String, _CachedEntry> _memoryCache = {};
+
+  void clearCache([String? keyPattern]) {
+    if (keyPattern == null) {
+      _memoryCache.clear();
+    } else {
+      _memoryCache.removeWhere((k, _) => k.contains(keyPattern));
+    }
+  }
+
   // =================================================================
   // GENERIC HTTP METHODS
   // =================================================================
-  Future<Map<String, dynamic>> get(String endpoint) async {
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    bool useCache = true,
+    Duration cacheDuration = const Duration(seconds: 20),
+    bool forceRefresh = false,
+  }) async {
+    if (useCache && !forceRefresh) {
+      final cached = _memoryCache[endpoint];
+      if (cached != null && !cached.isExpired && cached.data is Map<String, dynamic>) {
+        return cached.data as Map<String, dynamic>;
+      }
+    }
+
     final response = await http
         .get(Uri.parse('$_baseUrl$endpoint'), headers: _headers)
         .timeout(const Duration(seconds: 15));
     final data = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (useCache && data is Map<String, dynamic>) {
+        _memoryCache[endpoint] = _CachedEntry(data, DateTime.now().add(cacheDuration));
+      }
       return data;
     }
     throw Exception(data['message'] ?? 'Terjadi kesalahan jaringan.');
@@ -92,6 +118,8 @@ class ApiService extends ChangeNotifier {
         .timeout(const Duration(seconds: 180)); // Increased to 180s for docker pull
     final data = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      // Invalidate related caches on mutation
+      clearCache(endpoint.split('/').where((p) => p.isNotEmpty).firstOrNull);
       return data;
     }
     throw Exception(data['message'] ?? 'Terjadi kesalahan jaringan.');
@@ -185,7 +213,15 @@ class ApiService extends ChangeNotifier {
   // =================================================================
   // DOCKER CONTAINERS (Bab 2, 4, 6, 8)
   // =================================================================
-  Future<List<ContainerModel>> fetchContainers() async {
+  Future<List<ContainerModel>> fetchContainers({bool useCache = true, bool forceRefresh = false}) async {
+    const cacheKey = 'containers_list';
+    if (useCache && !forceRefresh) {
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && !cached.isExpired && cached.data is List<ContainerModel>) {
+        return cached.data as List<ContainerModel>;
+      }
+    }
+
     try {
       final response = await http
           .get(Uri.parse('$_baseUrl/containers'), headers: _headers)
@@ -193,9 +229,15 @@ class ApiService extends ChangeNotifier {
 
       final data = jsonDecode(response.body);
       final list = data['data'] as List? ?? [];
-      return list.map((item) => ContainerModel.fromJson(item)).toList();
+      final result = list.map((item) => ContainerModel.fromJson(item)).toList();
+      _memoryCache[cacheKey] = _CachedEntry(result, DateTime.now().add(const Duration(seconds: 15)));
+      return result;
     } catch (e) {
       debugPrint('fetchContainers error: $e');
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && cached.data is List<ContainerModel>) {
+        return cached.data as List<ContainerModel>;
+      }
       return [];
     }
   }
@@ -210,6 +252,7 @@ class ApiService extends ChangeNotifier {
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['status'] == 'success') {
+      clearCache('containers');
       return true;
     } else {
       throw Exception(data['message'] ?? 'Gagal menjalankan aksi container');
@@ -219,7 +262,15 @@ class ApiService extends ChangeNotifier {
   // =================================================================
   // APP LAUNCHERS (Bab 4, 7)
   // =================================================================
-  Future<List<AppLauncherModel>> fetchAppLaunchers() async {
+  Future<List<AppLauncherModel>> fetchAppLaunchers({bool useCache = true, bool forceRefresh = false}) async {
+    const cacheKey = 'app_launchers_list';
+    if (useCache && !forceRefresh) {
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && !cached.isExpired && cached.data is List<AppLauncherModel>) {
+        return cached.data as List<AppLauncherModel>;
+      }
+    }
+
     try {
       final response = await http
           .get(Uri.parse('$_baseUrl/app-launchers'), headers: _headers)
@@ -228,10 +279,16 @@ class ApiService extends ChangeNotifier {
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['data'] != null) {
         final list = data['data'] as List? ?? [];
-        return list.map((item) => AppLauncherModel.fromJson(item)).toList();
+        final result = list.map((item) => AppLauncherModel.fromJson(item)).toList();
+        _memoryCache[cacheKey] = _CachedEntry(result, DateTime.now().add(const Duration(seconds: 30)));
+        return result;
       }
     } catch (e) {
       debugPrint('fetchAppLaunchers error: $e');
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && cached.data is List<AppLauncherModel>) {
+        return cached.data as List<AppLauncherModel>;
+      }
     }
     return [];
   }
@@ -263,6 +320,7 @@ class ApiService extends ChangeNotifier {
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 || response.statusCode == 201) {
+      clearCache('app_launchers');
       return true;
     } else {
       throw Exception(data['message'] ?? 'Gagal menambahkan App Launcher');
@@ -297,6 +355,7 @@ class ApiService extends ChangeNotifier {
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200) {
+      clearCache('app_launchers');
       return true;
     } else {
       throw Exception(data['message'] ?? 'Gagal mengupdate App Launcher');
@@ -312,6 +371,7 @@ class ApiService extends ChangeNotifier {
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200 || response.statusCode == 204) {
+      clearCache('app_launchers');
       return true;
     } else {
       final data = jsonDecode(response.body);
@@ -322,14 +382,24 @@ class ApiService extends ChangeNotifier {
   // =================================================================
   // BACKUP E-ASPIRA (Bab 9.B)
   // =================================================================
-  Future<BackupHistoryModel> fetchBackups() async {
+  Future<BackupHistoryModel> fetchBackups({bool useCache = true, bool forceRefresh = false}) async {
+    const cacheKey = 'backups_history_list';
+    if (useCache && !forceRefresh) {
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && !cached.isExpired && cached.data is BackupHistoryModel) {
+        return cached.data as BackupHistoryModel;
+      }
+    }
+
     final response = await http
         .get(Uri.parse('$_baseUrl/backups'), headers: _headers)
         .timeout(const Duration(seconds: 10));
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['status'] == 'success') {
-      return BackupHistoryModel.fromJson(data['data']);
+      final result = BackupHistoryModel.fromJson(data['data']);
+      _memoryCache[cacheKey] = _CachedEntry(result, DateTime.now().add(const Duration(seconds: 25)));
+      return result;
     } else {
       throw Exception(data['message'] ?? 'Gagal mengambil riwayat backup');
     }
@@ -346,6 +416,7 @@ class ApiService extends ChangeNotifier {
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['status'] == 'success') {
+      clearCache('backups');
       return data['message'] ?? 'Backup berhasil dijalankan';
     } else {
       throw Exception(data['message'] ?? 'Gagal memicu backup');
@@ -355,7 +426,15 @@ class ApiService extends ChangeNotifier {
   // =================================================================
   // NETWORK MONITORING
   // =================================================================
-  Future<Map<String, dynamic>> fetchNetworkInfo() async {
+  Future<Map<String, dynamic>> fetchNetworkInfo({bool useCache = true, bool forceRefresh = false}) async {
+    const cacheKey = 'network_info_data';
+    if (useCache && !forceRefresh) {
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && !cached.isExpired && cached.data is Map<String, dynamic>) {
+        return cached.data as Map<String, dynamic>;
+      }
+    }
+
     try {
       final response = await http
           .get(Uri.parse('$_baseUrl/network-info'), headers: _headers)
@@ -363,10 +442,16 @@ class ApiService extends ChangeNotifier {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == 'success') {
-        return data['data'] as Map<String, dynamic>;
+        final result = data['data'] as Map<String, dynamic>;
+        _memoryCache[cacheKey] = _CachedEntry(result, DateTime.now().add(const Duration(seconds: 30)));
+        return result;
       }
     } catch (e) {
       debugPrint('fetchNetworkInfo error: $e');
+      final cached = _memoryCache[cacheKey];
+      if (cached != null && cached.data is Map<String, dynamic>) {
+        return cached.data as Map<String, dynamic>;
+      }
     }
     return {};
   }
@@ -508,4 +593,11 @@ class ApiService extends ChangeNotifier {
       throw Exception('Maintenance error: $e');
     }
   }
+}
+
+class _CachedEntry {
+  final dynamic data;
+  final DateTime expiry;
+  _CachedEntry(this.data, this.expiry);
+  bool get isExpired => DateTime.now().isAfter(expiry);
 }

@@ -20,8 +20,8 @@ xcopy /s /e /y "mss-frontend\build\web\*" "mss-backend\public\"
 echo.
 
 echo [3/3] Mengirim (Push) pembaruan ke GitHub...
-git add mss-backend/public
-git commit -m "deploy(frontend): auto-build dan update UI"
+git add .
+git commit -m "feat(perf & ui): optimize loading speed with caching, gzip, fast host exec and modernize UI to v1.3.0"
 git push
 echo.
 

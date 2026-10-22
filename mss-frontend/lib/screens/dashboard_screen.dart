@@ -86,9 +86,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     _loadDashboardData();
 
-    // Auto refresh data every 10 seconds (Bab 7 real-time monitoring)
+    // Auto refresh data every 10 seconds hanya jika user sedang di tab Dashboard
     _periodicTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted) {
+      if (mounted && _currentRoute == '/dashboard') {
         _loadDashboardData(isBackground: true);
       }
     });
@@ -464,14 +464,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             () {
                               switch (_currentRoute) {
-                                case '/backup': return 'Storage & Backup';
+                                case '/dashboard': return 'Dashboard Overview';
                                 case '/containers': return 'Docker Containers';
-                                case '/network': return 'Network Monitoring';
-                                case '/terminal': return 'Web Terminal (Root)';
-                                case '/settings': return 'Settings & Konfigurasi';
+                                case '/backup': return 'Storage & Backup (NAS)';
+                                case '/network': return 'Network & Ports';
+                                case '/installer': return 'App Installer (1-Click)';
+                                case '/database': return 'Database Manager';
+                                case '/cron': return 'Cron Jobs Scheduler';
+                                case '/security': return 'Security & Firewall';
+                                case '/services': return 'Services & Processes';
+                                case '/logs': return 'System Logs Viewer';
                                 case '/maintenance': return 'System Maintenance';
-                                case '/dashboard':
-                                default: return 'Dashboard';
+                                case '/terminal': return 'Web Terminal (Root Host)';
+                                case '/settings': return 'Settings & Konfigurasi';
+                                default: return 'MSS Panel';
                               }
                             }(),
                             style: TextStyle(
@@ -498,6 +504,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Actions
                       Row(
                         children: [
+                          if (isDesktop && _hostStats != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F172A),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF1E293B)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'CPU: ${_hostStats!.cpuUsagePercent.toStringAsFixed(0)}%  •  RAM: ${_hostStats!.ramUsedGb.toStringAsFixed(1)} GB',
+                                    style: const TextStyle(
+                                      color: Color(0xFFCBD5E1),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+
+                          // Refresh Button
+                          IconButton(
+                            tooltip: 'Refresh Data',
+                            icon: _isRefreshing
+                                ? SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF94A3B8)),
+                            onPressed: _isRefreshing
+                                ? null
+                                : () {
+                                    final api = context.read<ApiService>();
+                                    api.clearCache();
+                                    _refreshDataQuietly();
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+
                           // Backup E-Aspira Drawer Trigger (Bab 9.B)
                           TextButton.icon(
                             style: TextButton.styleFrom(
@@ -512,14 +574,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               setState(() => _currentRoute = '/backup');
                               _saveRoute('/backup');
                             },
-                            icon: const Icon(Icons.backup, size: 18),
+                            icon: const Icon(Icons.backup_rounded, size: 18),
                             label: const Text(
                               'Backup NAS',
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          // Refresh berjalan di background secara otomatis (silent)
                         ],
                       ),
                     ],
