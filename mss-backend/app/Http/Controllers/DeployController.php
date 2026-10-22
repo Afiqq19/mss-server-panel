@@ -106,8 +106,9 @@ class DeployController extends Controller
         }
 
         // 6b. Reload Nginx configuration agar security headers dan hardening langsung aktif
-        shell_exec("docker exec mss-frontend nginx -s reload 2>&1");
-        shell_exec("docker exec mss-nginx nginx -s reload 2>&1");
+        $nginxTest = shell_exec("docker exec mss-frontend nginx -t 2>&1");
+        $nginxReload = shell_exec("docker exec mss-frontend nginx -s reload 2>&1");
+        @shell_exec("docker exec mss-nginx nginx -s reload 2>&1");
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
@@ -122,7 +123,8 @@ class DeployController extends Controller
                 'git_fetch' => trim((string)$fetch),
                 'git' => trim((string)$gitOutput),
                 'migrate' => trim((string)$migrate),
-                'cache' => trim((string)$optimize)
+                'cache' => trim((string)$optimize),
+                'nginx' => trim((string)$nginxTest) . "\n" . trim((string)$nginxReload)
             ]);
         }
 
@@ -131,6 +133,7 @@ class DeployController extends Controller
         $cleanMigrate = htmlspecialchars(trim((string)$migrate) ?: 'Tidak ada migrasi baru.');
         $cleanSeed = htmlspecialchars(trim((string)$seed) ?: 'Akun admin siap.');
         $cleanCache = htmlspecialchars(trim((string)$optimize) ?: 'Cache dibersihkan.');
+        $cleanNginx = htmlspecialchars(trim((string)$nginxTest . "\n" . (string)$nginxReload) ?: 'Nginx reloaded successfully.');
         
         // Ambil versi saat ini dari pubspec.yaml
         $pubspecContent = @file_get_contents($repoDir . '/mss-frontend/pubspec.yaml');
