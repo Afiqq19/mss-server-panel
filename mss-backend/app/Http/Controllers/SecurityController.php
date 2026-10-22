@@ -78,22 +78,26 @@ class SecurityController extends Controller
     public function managePort(Request $request): JsonResponse
     {
         $request->validate([
-            'port' => 'required|string',
+            'port' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{1,5}(:[0-9]{1,5})?$/', // hanya izinkan angka port 1-65535 atau rentang port (contoh: 8000:8010)
+            ],
             'protocol' => 'nullable|in:tcp,udp',
             'action' => 'required|in:allow,deny,delete'
         ]);
 
-        $port = escapeshellarg($request->input('port'));
+        $cleanPort = preg_replace('/[^0-9:]/', '', (string)$request->input('port'));
         $proto = $request->input('protocol') ? '/' . $request->input('protocol') : '';
         $action = $request->input('action');
         
         $cmd = "";
         if ($action === 'delete') {
             // Delete by ID (port input is actually the rule ID here)
-            $cmd = "echo y | ufw delete " . escapeshellarg($request->input('port')) . " 2>&1";
+            $cmd = "echo y | ufw delete " . escapeshellarg($cleanPort) . " 2>&1";
         } else {
             // Allow or Deny
-            $cmd = "ufw $action $port$proto 2>&1";
+            $cmd = "ufw $action " . escapeshellarg($cleanPort . $proto) . " 2>&1";
         }
 
         try {

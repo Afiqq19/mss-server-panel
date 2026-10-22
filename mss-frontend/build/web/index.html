@@ -323,8 +323,8 @@
         </svg>
       </div>
     </div>
-    <div class="brand-title">MSS SERVER PANEL</div>
-    <div class="brand-subtitle">Self-Hosted Infrastructure</div>
+    <div class="brand-title">MSS CYBER PANEL</div>
+    <div class="brand-subtitle">Military-Grade Zero-Trust Infrastructure • v1.5.0</div>
     <div class="progress-bar-wrapper">
       <div class="progress-bar-fill"></div>
     </div>
@@ -443,7 +443,7 @@
     if ('caches' in window) {
       caches.keys().then((names) => {
         names.forEach((name) => {
-          if (name.includes('1.2.2') || name === 'flutter-app-cache') {
+          if (name.includes('1.2.2') || name.includes('1.4.0') || name === 'flutter-app-cache') {
             caches.delete(name);
           }
         });
@@ -451,6 +451,6 @@
     }
   </script>
 
-  <script src="flutter_bootstrap.js?v=v1.4.0-build21" async></script>
+  <script src="flutter_bootstrap.js?v=v1.5.0-build22" async></script>
 </body>
 </html>

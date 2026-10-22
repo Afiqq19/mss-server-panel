@@ -28279,7 +28279,7 @@ _.Q=d
 _.as=e
 _.at=!0
 _.ay=null
-_.ch="v1.4.0"
+_.ch="v1.5.0"
 _.c=_.a=null},
 auj:function auj(a){this.a=a},
 auk:function auk(a){this.a=a},
@@ -28594,7 +28594,7 @@ _.as=_.Q=_.z=!1
 _.at=""
 _.ax=h
 _.ay=!0
-_.ch="v1.4.0"
+_.ch="v1.5.0"
 _.c=_.a=null},
 aBW:function aBW(a,b){this.a=a
 this.b=b},
@@ -95806,16 +95806,16 @@ $1(a){var s=this.a
 if(s.c!=null)s.mH(!0)},
 $S:45}
 A.atR.prototype={
-$0(){return this.a.ch="v"+(this.b.c==="1.2.2"?"1.4.0":this.b.c)},
+$0(){return this.a.ch="v"+(this.b.c==="1.2.2"||this.b.c==="1.4.0"?"1.5.0":this.b.c)},
 $S:0}
 A.atS.prototype={
-$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"?"1.4.0":v)},
+$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"||v==="1.4.0"?"1.5.0":v)},
 $S:0}
 A.atT.prototype={
-$0(){return this.a.ch="v1.4.0"},
+$0(){return this.a.ch="v1.5.0"},
 $S:0}
 A.atU.prototype={
-$0(){return this.a.ch="v1.4.0"},
+$0(){return this.a.ch="v1.5.0"},
 $S:0}
 A.au0.prototype={
 $0(){this.a.r=this.b},
@@ -97718,16 +97718,16 @@ P8(a,b,c){return this.yH(a,b,!1,c,null)},
 P9(a,b,c,d){return this.yH(a,b,c,d,null)},
 a9A(a,b,c,d){return this.yH(a,b,!1,c,d)}}
 A.aBW.prototype={
-$0(){return this.a.ch="v"+(this.b.c==="1.2.2"?"1.4.0":this.b.c)},
+$0(){return this.a.ch="v"+(this.b.c==="1.2.2"||this.b.c==="1.4.0"?"1.5.0":this.b.c)},
 $S:0}
 A.aBX.prototype={
-$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"?"1.4.0":v)},
+$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"||v==="1.4.0"?"1.5.0":v)},
 $S:0}
 A.aBY.prototype={
-$0(){return this.a.ch="v1.4.0"},
+$0(){return this.a.ch="v1.5.0"},
 $S:0}
 A.aBZ.prototype={
-$0(){return this.a.ch="v1.4.0"},
+$0(){return this.a.ch="v1.5.0"},
 $S:0}
 A.aC_.prototype={
 $0(){return this.a.ay=!0},
@@ -106249,12 +106249,12 @@ B.VX=new A.b4(B.lr,B.fW,null)
 B.js=new A.b4(B.qa,B.fW,null)
 B.Li=new A.a7(24,8,24,8)
 B.Dm=new A.k(!0,B.aM,null,null,null,null,11,B.E,null,1.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a5N=new A.a5("MAIN MENU",null,B.Dm,null,null,null,null,null,null,null)
+B.a5N=new A.a5("CORE CLOUD",null,B.Dm,null,null,null,null,null,null,null)
 B.VZ=new A.b4(B.Li,B.a5N,null)
 B.Ll=new A.a7(32,0,32,0)
 B.a5u=new A.a5("Klik pada salah satu tabel di panel tengah untuk melihat isi data dan kolom.",null,B.cx,B.bN,null,null,null,null,null,null)
 B.W0=new A.b4(B.Ll,B.a5u,null)
-B.a6p=new A.a5("SYSTEM",null,B.Dm,null,null,null,null,null,null,null)
+B.a6p=new A.a5("SECURITY & CYBER OPS",null,B.Dm,null,null,null,null,null,null,null)
 B.W2=new A.b4(B.cp,B.a6p,null)
 B.a5C=new A.a5("Pilih salah satu database di sebelah kiri untuk melihat daftar tabel.",null,B.cx,B.bN,null,null,null,null,null,null)
 B.W3=new A.b4(B.lu,B.a5C,null)
@@ -107082,14 +107082,14 @@ B.a0c=new A.k(!0,B.q,null,".AppleSystemUIFont",null,null,null,null,null,null,nul
 B.a55=new A.ez(B.a2n,B.a15,B.a2o,B.a31,B.a0F,B.a0O,B.a1v,B.a2P,B.a1I,B.a3E,B.a03,B.a0l,B.a3y,B.a3X,B.a0c)
 B.a57=new A.a5("Kelola skema tabel, telusuri isi data, dan eksekusi kueri multi-container.",null,B.eo,null,null,null,null,null,null,null)
 B.a3g=new A.k(!0,B.G,null,null,null,null,12,B.ac,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a59=new A.a5("Status: Connected via ttyd",null,B.a3g,null,null,null,null,null,null,null)
+B.a59=new A.a5("🛡️ SECURE ZERO-TRUST PTY • TLS 1.3",null,B.a3g,null,null,null,null,null,null,null)
 B.a5a=new A.a5("Deny TCP",null,null,null,null,null,null,null,null,null)
 B.a5c=new A.a5("Gagal Memuat Container",null,B.bY,null,null,null,null,null,null,null)
 B.a5d=new A.a5("UFW sedang nonaktif.",null,B.aK,null,null,null,null,null,null,null)
 B.a2V=new A.k(!0,B.e,null,null,null,null,22,B.E,null,2,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a5f=new A.a5("MSS SERVER PANEL",null,B.a2V,null,null,null,null,null,null,null)
+B.a5f=new A.a5("MSS CYBER-PANEL",null,B.a2V,null,null,null,null,null,null,null)
 B.a26=new A.k(!0,B.fP,null,null,null,null,10.5,B.bz,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a5h=new A.a5("Multi-Container MariaDB",null,B.a26,null,null,null,null,null,null,null)
+B.a5h=new A.a5("Multi-Container Data Matrix",null,B.a26,null,null,null,null,null,null,null)
 B.a1f=new A.k(!0,B.e,null,null,null,null,22,B.E,null,-0.3,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a5i=new A.a5("Database Manager",null,B.a1f,null,null,null,null,null,null,null)
 B.a5j=new A.a5("Install",null,B.aX,null,null,null,null,null,null,null)
@@ -107100,16 +107100,16 @@ B.a5m=new A.a5("Pilih Database",null,B.nR,null,null,null,null,null,null,null)
 B.a5n=new A.a5("Tidak ada cron job.",null,B.aK,null,null,null,null,null,null,null)
 B.a5o=new A.a5("Jalankan Kueri (Run)",null,B.cd,null,null,null,null,null,null,null)
 B.Dv=new A.a5("Ya, Logout",null,B.aX,null,null,null,null,null,null,null)
-B.a5r=new A.a5("Self-Hosted Infrastructure Manager",null,B.eq,null,null,null,null,null,null,null)
+B.a5r=new A.a5("Military-Grade Self-Hosted Infrastructure",null,B.eq,null,null,null,null,null,null,null)
 B.a5s=new A.a5("Aktif",null,B.hX,null,null,null,null,null,null,null)
 B.a1J=new A.k(!0,B.e,null,null,null,null,18,B.E,null,1.2,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a5t=new A.a5("MSS PANEL",null,B.a1J,null,null,null,null,null,null,null)
+B.a5t=new A.a5("MSS CYBER-PANEL",null,B.a1J,null,null,null,null,null,null,null)
 B.a5w=new A.a5("Target DB: ",null,B.eo,null,null,null,null,null,null,null)
 B.a5z=new A.a5("Simpan Konfigurasi",null,B.fo,null,null,null,null,null,null,null)
 B.a5D=new A.a5("Gagal Membaca Storage NAS",null,B.bY,null,null,null,null,null,null,null)
-B.a5F=new A.a5("DOCKER CONTAINERS",null,B.hV,null,null,null,null,null,null,null)
+B.a5F=new A.a5("CONTAINER CLOUD MESH",null,B.hV,null,null,null,null,null,null,null)
 B.a0g=new A.k(!0,B.S,null,null,null,null,12,B.E,null,1.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a5H=new A.a5("HOST SERVER MONITOR",null,B.a0g,null,null,null,null,null,null,null)
+B.a5H=new A.a5("HOST SERVER TELEMETRY",null,B.a0g,null,null,null,null,null,null,null)
 B.a5M=new A.a5("Ganti Database: ",null,B.eo,null,null,null,null,null,null,null)
 B.a5O=new A.a5("Backup",null,B.cd,null,null,null,null,null,null,null)
 B.a5P=new A.a5("Allow TCP",null,null,null,null,null,null,null,null,null)
@@ -107117,7 +107117,7 @@ B.a3a=new A.k(!0,B.G,null,null,null,null,13,B.bz,null,null,null,null,null,null,n
 B.a5Q=new A.a5("Tersimpan di NAS",null,B.a3a,null,null,null,null,null,null,null)
 B.a4C=new A.k(!0,B.G,null,null,null,null,20,B.E,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a5S=new A.a5("\u2705 UPDATE MEPAL SELESAI & SUKSES!",null,B.a4C,null,null,null,null,null,null,null)
-B.a5T=new A.a5("APP LAUNCHER",null,B.hV,null,null,null,null,null,null,null)
+B.a5T=new A.a5("APPLICATION LAUNCHPAD",null,B.hV,null,null,null,null,null,null,null)
 B.a5U=new A.a5("Ya, Hapus",null,B.aX,null,null,null,null,null,null,null)
 B.a5V=new A.a5("Buka Dashboard Panel",null,B.cd,null,null,null,null,null,null,null)
 B.a5W=new A.a5("Petunjuk Restore SQL",null,B.cd,null,null,null,null,null,null,null)

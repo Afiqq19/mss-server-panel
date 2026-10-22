@@ -397,13 +397,14 @@ class BackupController extends Controller
                 } elseif (str_contains($cleanLower, 'panel') || str_contains($cleanLower, 'mss')) {
                     $folderName = 'Panel-MSS';
                 } else {
-                    $folderName = $rawProject;
+                    $folderName = preg_replace('/[^a-zA-Z0-9_\-]/', '', $rawProject) ?: 'General';
                 }
                 $projectsToBackup = [$folderName];
             }
 
             // 2. Buat sub-folder terpisah dan backup untuk masing-masing proyek
             foreach ($projectsToBackup as $projFolder) {
+                $projFolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $projFolder) ?: 'General';
                 // Buat folder via Nextcloud container
                 if ($nextcloudContainer) {
                     $this->dockerExec($nextcloudContainer, ['mkdir', '-p', "/var/www/html/data/mss/files/Backup-Server/{$projFolder}"]);

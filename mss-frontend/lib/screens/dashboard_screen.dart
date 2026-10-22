@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingInitial = true;
   bool _isRefreshing = false;
   String? _errorMessage;
-  String _appVersion = 'v1.4.0';
+  String _appVersion = 'v1.5.0';
 
   int _getRouteIndex(String route) {
     switch (route) {
@@ -115,14 +115,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // 2. PackageInfo fallback
     try {
       final info = await PackageInfo.fromPlatform();
-      if (info.version.isNotEmpty && info.version != 'Unknown' && info.version != '1.2.2') {
+      if (info.version.isNotEmpty && info.version != 'Unknown' && info.version != '1.2.2' && info.version != '1.4.0') {
         if (mounted) setState(() => _appVersion = 'v${info.version}');
         return;
       }
     } catch (_) {}
 
     // 3. Absolute fallback
-    if (mounted) setState(() => _appVersion = 'v1.4.0');
+    if (mounted) setState(() => _appVersion = 'v1.5.0');
   }
 
   /// Generate realistic initial CPU history with natural-looking peaks & valleys

@@ -231,12 +231,16 @@ class DatabaseController extends Controller
     public function createDatabase(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|alpha_dash',
+            'name' => 'required|regex:/^[a-zA-Z0-9_]+$/|max:64',
             'container' => 'nullable|string'
         ]);
+
         try {
             \Illuminate\Support\Facades\Cache::forget('db_databases_list_cached');
             $container = $request->input('container');
+            if ($container && !preg_match('/^[a-zA-Z0-9_\-]+$/', $container)) {
+                return $this->error('Nama container tidak valid.', 400);
+            }
             if (!$container) {
                 $containers = $this->getAllDbContainers();
                 $container = $containers[0];
@@ -244,10 +248,11 @@ class DatabaseController extends Controller
 
             $password = $this->getDbPassword($container);
             $client = $this->resolveDbCommand($container, 'client');
-            $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', "CREATE DATABASE `{$request->name}`;"];
+            $cleanDbName = preg_replace('/[^a-zA-Z0-9_]/', '', $request->name);
+            $cmd = [$client, '-u', 'root', "-p{$password}", '-s', '-e', "CREATE DATABASE `{$cleanDbName}`;"];
             $this->dockerExecDb($container, $cmd);
 
-            return $this->success([], "Database {$request->name} berhasil dibuat di container {$container}.");
+            return $this->success([], "Database {$cleanDbName} berhasil dibuat di container {$container}.");
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -256,6 +261,9 @@ class DatabaseController extends Controller
     public function getTables(Request $request): JsonResponse
     {
         $db = $request->query('db', '');
+        if ($db !== '' && !preg_match('/^(\[[a-zA-Z0-9_\-]+\]\s+)?[a-zA-Z0-9_\-]+$/', $db)) {
+            return $this->error('Nama database tidak valid.', 400);
+        }
         try {
             $output = $this->runQuery('SHOW TABLES;', $db);
             $tables = array_filter(explode("\n", $output));
@@ -269,6 +277,15 @@ class DatabaseController extends Controller
     {
         $db = $request->query('db', '');
         $table = $request->query('table', '');
+
+        // Validasi keamanan: Cegah SQL Injection pada nama database & tabel
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $table)) {
+            return $this->error('Nama tabel tidak valid atau mengandung karakter ilegal.', 400);
+        }
+        if ($db !== '' && !preg_match('/^(\[[a-zA-Z0-9_\-]+\]\s+)?[a-zA-Z0-9_\-]+$/', $db)) {
+            return $this->error('Nama database tidak valid.', 400);
+        }
+
         try {
             $descOutput = $this->runQuery("DESCRIBE `{$table}`;", $db);
             $descLines = array_filter(explode("\n", $descOutput));

@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // App Launcher Management
   List<AppLauncherModel> _launchers = [];
   bool _isLoadingLaunchers = true;
-  String _appVersion = 'v1.4.0';
+  String _appVersion = 'v1.5.0';
 
   @override
   void initState() {
@@ -66,14 +66,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // 2. PackageInfo fallback
     try {
       final info = await PackageInfo.fromPlatform();
-      if (info.version.isNotEmpty && info.version != 'Unknown' && info.version != '1.2.2') {
+      if (info.version.isNotEmpty && info.version != 'Unknown' && info.version != '1.2.2' && info.version != '1.4.0') {
         if (mounted) setState(() => _appVersion = 'v${info.version}');
         return;
       }
     } catch (_) {}
 
     // 3. Absolute fallback
-    if (mounted) setState(() => _appVersion = 'v1.4.0');
+    if (mounted) setState(() => _appVersion = 'v1.5.0');
   }
 
   @override

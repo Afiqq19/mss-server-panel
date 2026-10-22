@@ -542,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'MSS Server Panel v1.4.0 • Zero-Trust Security Edition',
+                            'MSS Server Panel v1.5.0 • Zero-Trust Military-Grade Edition',
                             style: TextStyle(
                               fontSize: 10.5,
                               letterSpacing: 0.8,
