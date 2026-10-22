@@ -96740,7 +96740,7 @@ k.toString
 B.b.T(q,A.b([A.a6(g,A.ar(A.b([B.Oy,B.ay,A.bd(A.a2(k,g,g,g,g,B.a0R,g,g),1)],n),B.m,B.h,B.i,0,g),B.j,g,g,new A.a3(o,g,l,m,g,g,B.o),g,g,g,g,B.L5,g,g,g),B.CS],n))}o=A.M(51,B.q.l()>>>16&255,B.q.l()>>>8&255,B.q.l()&255)
 m=A.T(14)
 l=A.T(14)
-q.push(A.aoP(i.e,A.l5(g,g,g,g,g,g,g,g,!0,new A.cD(4,m,B.oF),g,new A.cD(4,A.T(14),B.i8),g,g,g,o,!0,g,g,g,g,new A.cD(4,l,B.oE),new A.cD(4,A.T(14),B.i8),g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,B.aK,"Email Administrator",!0,!0,g,B.Ot,g,g,g,g,g,g,g,g,g,g,g,g),B.Dj,!1,!1,B.aX,new A.ayi()))
+q.push(A.aoP(i.e,A.l5(g,g,g,g,g,g,g,g,!0,new A.cD(4,m,B.oF),g,new A.cD(4,A.T(14),B.i8),g,g,g,o,!0,g,g,g,g,new A.cD(4,l,B.oE),new A.cD(4,A.T(14),B.i8),g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,B.aK,"Username atau Email",!0,!0,g,B.Ot,g,g,g,g,g,g,g,g,g,g,g,g),B.Dj,!1,!1,B.aX,new A.ayi()))
 q.push(B.Z)
 l=i.w
 o=A.fF(g,g,A.c_(l?B.MQ:B.MR,B.S,g,g),g,g,new A.ayj(i),g,g,g)
@@ -96771,8 +96771,7 @@ A.ayg.prototype={
 $0(){return this.a.r=!1},
 $S:0}
 A.ayi.prototype={
-$1(a){if(a.length===0)return"Email tidak boleh kosong"
-if(!B.d.q(a,"@"))return"Format email tidak valid"
+$1(a){if(a.length===0)return"Username atau Email wajib diisi"
 return null},
 $S:80}
 A.ayk.prototype={

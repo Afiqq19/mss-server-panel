@@ -22,8 +22,20 @@ class DatabaseSeeder extends Seeder
             User::create([
                 'email' => $adminEmail,
                 'name' => 'MSS Panel Administrator',
+                'username' => 'admin',
                 'password' => Hash::make(env('ADMIN_DEFAULT_PASSWORD', 'password123')),
             ]);
+        } else {
+            // Pastikan akun admin yang sudah ada memiliki username 'admin' jika belum diset
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username') && empty($admin->username)) {
+                $admin->username = 'admin';
+                $admin->save();
+            }
+        }
+
+        // Pastikan semua user yang ada memiliki username fallback jika masih null
+        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
+            User::whereNull('username')->update(['username' => 'admin']);
         }
 
         // 2. Daftar Shortcut URL Dinamis App Launcher (Bab 4 & 7)

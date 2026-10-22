@@ -284,24 +284,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 20),
                           ],
 
-                          // Email Field (Blank by default)
+                          // Username / Email Field
                           TextFormField(
                             controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.text,
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Email administrator wajib diisi';
-                              }
-                              if (!value.contains('@') || !value.contains('.')) {
-                                return 'Format email tidak valid';
+                                return 'Username atau email administrator wajib diisi';
                               }
                               return null;
                             },
                             decoration: InputDecoration(
-                              labelText: 'Email Administrator',
-                              hintText: 'admin@domain.com',
+                              labelText: 'Username atau Email',
+                              hintText: 'admin atau admin@mepal.local',
                               hintStyle: TextStyle(
                                 color: Colors.white.withOpacity(0.2),
                                 fontSize: 13,
@@ -315,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                               prefixIcon: const Icon(
-                                Icons.alternate_email_rounded,
+                                Icons.person_outline_rounded,
                                 color: Color(0xFF06B6D4),
                                 size: 20,
                               ),

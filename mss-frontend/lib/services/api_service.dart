@@ -108,6 +108,7 @@ class ApiService extends ChangeNotifier {
             headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
             body: jsonEncode({
               'email': email,
+              'username': email,
               'password': password,
             }),
           )

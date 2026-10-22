@@ -20,24 +20,43 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|string|max:150',
+            'email' => 'nullable|string|max:150',
+            'username' => 'nullable|string|max:150',
             'password' => 'required|string|min:6|max:100',
         ]);
 
-        $loginInput = trim($request->email);
-        $user = User::where('email', $loginInput)
-            ->orWhere('name', $loginInput)
-            ->when(\Illuminate\Support\Facades\Schema::hasColumn('users', 'username'), function ($q) use ($loginInput) {
-                return $q->orWhere('username', $loginInput);
-            })
-            ->first();
+        $loginInput = trim((string)($request->input('email') ?? $request->input('username') ?? ''));
+        if (empty($loginInput)) {
+            return $this->error('Username atau email wajib diisi.', 422);
+        }
+
+        $lowerInput = strtolower($loginInput);
+        $hasUsernameCol = \Illuminate\Support\Facades\Schema::hasColumn('users', 'username');
+
+        $user = User::where(function ($query) use ($lowerInput, $hasUsernameCol) {
+            $query->whereRaw('LOWER(email) = ?', [$lowerInput])
+                  ->orWhereRaw('LOWER(name) = ?', [$lowerInput]);
+
+            if ($hasUsernameCol) {
+                $query->orWhereRaw('LOWER(username) = ?', [$lowerInput]);
+            }
+
+            // Jika user mengetik 'admin', cocokkan juga akun admin bawaan sistem
+            if ($lowerInput === 'admin') {
+                $query->orWhere('email', 'admin@mepal.local')
+                      ->orWhere('name', 'MSS Panel Administrator');
+                if ($hasUsernameCol) {
+                    $query->orWhereNull('username');
+                }
+            }
+        })->first();
 
         // Timing-safe check & generic error message to prevent account enumeration
         if (!$user || !Hash::check($request->password, $user->password)) {
             // Mitigasi timing attack & brute-force delay (250ms)
             usleep(250000);
             Log::warning("Percobaan login gagal untuk: {$loginInput} dari IP: " . $request->ip());
-            return $this->error('Email atau kata sandi tidak valid.', 401);
+            return $this->error('Username/Email atau kata sandi tidak valid.', 401);
         }
 
         // Hapus token lama untuk user ini agar sesi rapi dan aman
@@ -50,6 +69,7 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'username' => $hasUsernameCol ? ($user->username ?? 'admin') : 'admin',
                 'email' => $user->email,
             ],
         ], 'Login berhasil');

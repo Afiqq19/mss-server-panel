@@ -18,6 +18,7 @@ class SettingsController extends Controller
         $request->validate([
             'username' => 'nullable|string|max:100',
             'name' => 'nullable|string|max:100',
+            'email' => 'nullable|string|email|max:150',
             'current_password' => 'required|string',
             'new_password' => 'nullable|string|min:6|max:100',
         ]);
@@ -37,6 +38,10 @@ class SettingsController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
                 $user->username = $username;
             }
+        }
+
+        if ($request->filled('email')) {
+            $user->email = trim($request->email);
         }
 
         if ($request->filled('new_password')) {
