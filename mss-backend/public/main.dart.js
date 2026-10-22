@@ -1,4 +1,4 @@
-﻿(function dartProgram(){function copyProperties(a,b){var s=Object.keys(a)
+(function dartProgram(){function copyProperties(a,b){var s=Object.keys(a)
 for(var r=0;r<s.length;r++){var q=s[r]
 b[q]=a[q]}}function mixinPropertiesHard(a,b){var s=Object.keys(a)
 for(var r=0;r<s.length;r++){var q=s[r]
@@ -28279,7 +28279,7 @@ _.Q=d
 _.as=e
 _.at=!0
 _.ay=null
-_.ch="-"
+_.ch="v1.4.0"
 _.c=_.a=null},
 auj:function auj(a){this.a=a},
 auk:function auk(a){this.a=a},
@@ -28594,7 +28594,7 @@ _.as=_.Q=_.z=!1
 _.at=""
 _.ax=h
 _.ay=!0
-_.ch="v1.0.6"
+_.ch="v1.4.0"
 _.c=_.a=null},
 aBW:function aBW(a,b){this.a=a
 this.b=b},
@@ -95571,7 +95571,7 @@ l=A.bO(f,!1,t.e)
 f=l.a
 f===$&&A.a()
 k=A.dZ(f,"/api","")
-j=J.c8(k)===0?"/version.json":A.l(k)+"/version.json"
+j=(J.c8(k)===0?"/version.json":A.l(k)+"/version.json")+"?t="+Date.now()
 s=12
 return A.B(A.nF(A.cF(j,0,null),null),$async$uk)
 case 12:i=b
@@ -95806,16 +95806,16 @@ $1(a){var s=this.a
 if(s.c!=null)s.mH(!0)},
 $S:45}
 A.atR.prototype={
-$0(){return this.a.ch="v"+this.b.c},
+$0(){return this.a.ch="v"+(this.b.c==="1.2.2"?"1.4.0":this.b.c)},
 $S:0}
 A.atS.prototype={
-$0(){return this.a.ch="v"+A.l(J.ab(this.b,"version"))},
+$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"?"1.4.0":v)},
 $S:0}
 A.atT.prototype={
-$0(){return this.a.ch="v1.0.6"},
+$0(){return this.a.ch="v1.4.0"},
 $S:0}
 A.atU.prototype={
-$0(){return this.a.ch="v1.0.6"},
+$0(){return this.a.ch="v1.4.0"},
 $S:0}
 A.au0.prototype={
 $0(){this.a.r=this.b},
@@ -97377,7 +97377,7 @@ l=A.bO(f,!1,t.e)
 f=l.a
 f===$&&A.a()
 k=A.dZ(f,"/api","")
-j=J.c8(k)===0?"/version.json":A.l(k)+"/version.json"
+j=(J.c8(k)===0?"/version.json":A.l(k)+"/version.json")+"?t="+Date.now()
 s=12
 return A.B(A.nF(A.cF(j,0,null),null),$async$uD)
 case 12:i=b
@@ -97718,16 +97718,16 @@ P8(a,b,c){return this.yH(a,b,!1,c,null)},
 P9(a,b,c,d){return this.yH(a,b,c,d,null)},
 a9A(a,b,c,d){return this.yH(a,b,!1,c,d)}}
 A.aBW.prototype={
-$0(){return this.a.ch="v"+this.b.c},
+$0(){return this.a.ch="v"+(this.b.c==="1.2.2"?"1.4.0":this.b.c)},
 $S:0}
 A.aBX.prototype={
-$0(){return this.a.ch="v"+A.l(J.ab(this.b,"version"))},
+$0(){var v=A.l(J.ab(this.b,"version"));return this.a.ch="v"+(v==="1.2.2"?"1.4.0":v)},
 $S:0}
 A.aBY.prototype={
-$0(){return this.a.ch="v1.0.6"},
+$0(){return this.a.ch="v1.4.0"},
 $S:0}
 A.aBZ.prototype={
-$0(){return this.a.ch="v1.0.6"},
+$0(){return this.a.ch="v1.4.0"},
 $S:0}
 A.aC_.prototype={
 $0(){return this.a.ay=!0},

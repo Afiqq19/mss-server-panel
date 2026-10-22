@@ -438,8 +438,19 @@
         }, 500);
       }
     }, 8000);
+
+    // Otomatis bersihkan cache lawas jika versi berbeda
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          if (name.includes('1.2.2') || name === 'flutter-app-cache') {
+            caches.delete(name);
+          }
+        });
+      });
+    }
   </script>
 
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="flutter_bootstrap.js?v=v1.4.0-build21" async></script>
 </body>
 </html>

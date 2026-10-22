@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingInitial = true;
   bool _isRefreshing = false;
   String? _errorMessage;
-  String _appVersion = '-';
+  String _appVersion = 'v1.4.0';
 
   int _getRouteIndex(String route) {
     switch (route) {
@@ -95,32 +95,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _initPackageInfo() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      if (info.version.isNotEmpty && info.version != 'Unknown') {
-        if (mounted) setState(() => _appVersion = 'v${info.version}');
-        return;
-      }
-    } catch (_) {}
-    
-    // Fallback for Flutter Web where PackageInfo might fail
+    // 1. Prioritize cache-busting fetch of version.json directly
     try {
       final api = context.read<ApiService>();
       final baseUrl = api.baseUrl.replaceAll('/api', '');
-      final url = baseUrl.isEmpty ? '/version.json' : '$baseUrl/version.json';
+      final url = (baseUrl.isEmpty ? '/version.json' : '$baseUrl/version.json') +
+          '?t=${DateTime.now().millisecondsSinceEpoch}';
       
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (mounted && data['version'] != null) {
+        if (mounted && data['version'] != null && data['version'].toString().isNotEmpty) {
           setState(() => _appVersion = 'v${data['version']}');
+          return;
         }
-      } else {
-        if (mounted) setState(() => _appVersion = 'v1.0.6');
       }
-    } catch (_) {
-      if (mounted) setState(() => _appVersion = 'v1.0.6');
-    }
+    } catch (_) {}
+
+    // 2. PackageInfo fallback
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (info.version.isNotEmpty && info.version != 'Unknown' && info.version != '1.2.2') {
+        if (mounted) setState(() => _appVersion = 'v${info.version}');
+        return;
+      }
+    } catch (_) {}
+
+    // 3. Absolute fallback
+    if (mounted) setState(() => _appVersion = 'v1.4.0');
   }
 
   /// Generate realistic initial CPU history with natural-looking peaks & valleys
