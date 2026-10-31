@@ -970,7 +970,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    mainAxisExtent: 165,
+                    mainAxisExtent: 228,
                   ),
                   itemCount: _containers.length,
                   itemBuilder: (context, index) {
