@@ -1,41 +1,44 @@
 'use strict';
 const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
-const CACHE_NAME = 'flutter-app-cache-v1.5.0-build22';
+const CACHE_NAME = 'flutter-app-cache';
 
 const RESOURCES = {"assets/AssetManifest.bin": "ad5a38f5bf8348d607844c770ff4c85a",
 "assets/AssetManifest.bin.json": "edfcf806797d19d34850e657d9977f9c",
 "assets/AssetManifest.json": "ed50748cfa3f65487016f64ade08d109",
 "assets/assets/images/mss_logo.png": "b7b9ca1967ab45032ef00adae067db5d",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/fonts/MaterialIcons-Regular.otf": "0c83c6ffd44bcd9587dff33e39089e5f",
-"assets/NOTICES": "56dafea64257ad623af9fa80464287e0",
+"assets/fonts/MaterialIcons-Regular.otf": "b0c391ece6ba7ba9b99cdc96ae7f76ad",
+"assets/NOTICES": "fda443b84e8d570d64ff996bb1f07e93",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "33b7d9392238c04c131b6ce224e13711",
 "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
-"canvaskit/canvaskit.js": "140ccb7d34d0a55065fbd422b843add6",
-"canvaskit/canvaskit.js.symbols": "58832fbed59e00d2190aa295c4d70360",
-"canvaskit/canvaskit.wasm": "07b9f5853202304d3b0749d9306573cc",
-"canvaskit/chromium/canvaskit.js": "5e27aae346eee469027c80af0751d53d",
-"canvaskit/chromium/canvaskit.js.symbols": "193deaca1a1424049326d4a91ad1d88d",
-"canvaskit/chromium/canvaskit.wasm": "24c77e750a7fa6d474198905249ff506",
-"canvaskit/skwasm.js": "1ef3ea3a0fec4569e5d531da25f34095",
-"canvaskit/skwasm.js.symbols": "0088242d10d7e7d6d2649d1fe1bda7c1",
-"canvaskit/skwasm.wasm": "264db41426307cfc7fa44b95a7772109",
+"canvaskit/canvaskit.js": "6cfe36b4647fbfa15683e09e7dd366bc",
+"canvaskit/canvaskit.js.symbols": "68eb703b9a609baef8ee0e413b442f33",
+"canvaskit/canvaskit.wasm": "efeeba7dcc952dae57870d4df3111fad",
+"canvaskit/chromium/canvaskit.js": "ba4a8ae1a65ff3ad81c6818fd47e348b",
+"canvaskit/chromium/canvaskit.js.symbols": "5a23598a2a8efd18ec3b60de5d28af8f",
+"canvaskit/chromium/canvaskit.wasm": "64a386c87532ae52ae041d18a32a3635",
+"canvaskit/skwasm.js": "f2ad9363618c5f62e813740099a80e63",
+"canvaskit/skwasm.js.symbols": "80806576fa1056b43dd6d0b445b4b6f7",
+"canvaskit/skwasm.wasm": "f0dfd99007f989368db17c9abeed5a49",
 "canvaskit/skwasm_heavy.js": "413f5b2b2d9345f37de148e2544f584f",
 "canvaskit/skwasm_heavy.js.symbols": "3c01ec03b5de6d62c34e17014d1decd3",
 "canvaskit/skwasm_heavy.wasm": "8034ad26ba2485dab2fd49bdd786837b",
+"canvaskit/skwasm_st.js": "d1326ceef381ad382ab492ba5d96f04d",
+"canvaskit/skwasm_st.js.symbols": "c7e7aac7cd8b612defd62b43e3050bdd",
+"canvaskit/skwasm_st.wasm": "56c3973560dfcbf28ce47cebe40f3206",
 "favicon.png": "b7b9ca1967ab45032ef00adae067db5d",
-"flutter.js": "888483df48293866f9f41d3d9274a779",
-"flutter_bootstrap.js": "f173c8e8998a37997273ba5f6487e7c2",
+"flutter.js": "76f08d47ff9f5715220992f993002504",
+"flutter_bootstrap.js": "1722776d04553d6d7bbefd78a6d1ab71",
 "icons/Icon-192.png": "b7b9ca1967ab45032ef00adae067db5d",
 "icons/Icon-512.png": "b7b9ca1967ab45032ef00adae067db5d",
 "icons/Icon-maskable-192.png": "b7b9ca1967ab45032ef00adae067db5d",
 "icons/Icon-maskable-512.png": "b7b9ca1967ab45032ef00adae067db5d",
-"index.html": "9841b6b4a18dc677b2561676ecd0078b",
-"/": "9841b6b4a18dc677b2561676ecd0078b",
-"main.dart.js": "abee8221869bd4cfc50add9ea485da35",
-"manifest.json": "0c756f772d60fa3bbe23777bf799cdcf",
-"version.json": "abde274b5c2cc6a0079aef1c90cbab3f"};
+"index.html": "3c99020e98d416f711e292c0f08335cb",
+"/": "3c99020e98d416f711e292c0f08335cb",
+"main.dart.js": "e3cf6d0069dabe0870a388fba0718101",
+"manifest.json": "629a980669b882725375e3eeac0363b7",
+"version.json": "c0af2a18ea36bc61d58be6d8365acb58"};
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = ["main.dart.js",
@@ -60,14 +63,6 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", function(event) {
   return event.waitUntil(async function() {
     try {
-      // Purge any legacy caches that are not the current CACHE_NAME
-      var allCacheKeys = await caches.keys();
-      for (var k of allCacheKeys) {
-        if (k !== CACHE_NAME && k !== TEMP && k !== MANIFEST) {
-          await caches.delete(k);
-        }
-      }
-
       var contentCache = await caches.open(CACHE_NAME);
       var tempCache = await caches.open(TEMP);
       var manifestCache = await caches.open(MANIFEST);
@@ -142,8 +137,8 @@ self.addEventListener("fetch", (event) => {
   if (!RESOURCES[key]) {
     return;
   }
-  // If the URL is index.html or version.json, perform an online-first request.
-  if (key == '/' || key == 'version.json' || key == 'index.html') {
+  // If the URL is the index.html, perform an online-first request.
+  if (key == '/') {
     return onlineFirst(event);
   }
   event.respondWith(caches.open(CACHE_NAME)

@@ -19,14 +19,14 @@ class Sidebar extends StatelessWidget {
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          width: 268,
+          width: 272,
           decoration: BoxDecoration(
-            color: const Color(0xFF090D1A).withOpacity(0.75),
-            border: const Border(
+            color: const Color(0xFF060A17).withOpacity(0.88),
+            border: Border(
               right: BorderSide(
-                color: Color(0xFF1E293B),
+                color: Colors.white.withOpacity(0.07),
                 width: 1.0,
               ),
             ),
@@ -34,43 +34,43 @@ class Sidebar extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo Area
+              // Logo & Brand Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
                 child: Row(
                   children: [
                     Container(
-                      width: 42,
-                      height: 42,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            primaryColor.withOpacity(0.3),
-                            const Color(0xFF3B82F6).withOpacity(0.1),
+                            primaryColor.withOpacity(0.35),
+                            const Color(0xFF3B82F6).withOpacity(0.15),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: primaryColor.withOpacity(0.4),
+                          color: primaryColor.withOpacity(0.5),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryColor.withOpacity(0.25),
-                            blurRadius: 12,
+                            color: primaryColor.withOpacity(0.3),
+                            blurRadius: 16,
                             spreadRadius: 1,
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
                           'assets/images/mss_logo.png',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.dns_rounded, color: primaryColor, size: 22);
+                            return Icon(Icons.cloud_circle_rounded, color: primaryColor, size: 24);
                           },
                         ),
                       ),
@@ -87,38 +87,51 @@ class Sidebar extends StatelessWidget {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.4,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                 decoration: BoxDecoration(
-                                  color: primaryColor.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: primaryColor.withOpacity(0.3)),
+                                  color: primaryColor.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: primaryColor.withOpacity(0.4)),
                                 ),
                                 child: Text(
-                                  'PRO',
+                                  'ULTRA',
                                   style: TextStyle(
                                     color: primaryColor,
-                                    fontSize: 9,
+                                    fontSize: 8.5,
                                     fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
+                                    letterSpacing: 0.6,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'panel.xie.my.id',
-                            style: TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF10B981),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'panel.xie.my.id',
+                                style: TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -127,7 +140,7 @@ class Sidebar extends StatelessWidget {
                 ),
               ),
 
-              // Menu Items
+              // Menu Items List
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -155,7 +168,7 @@ class Sidebar extends StatelessWidget {
                     ),
                     _buildMenuItem(
                       context,
-                      title: 'Network',
+                      title: 'Network & Ports',
                       iconData: Icons.router_rounded,
                       route: '/network',
                     ),
@@ -179,12 +192,12 @@ class Sidebar extends StatelessWidget {
                       iconData: Icons.schedule_rounded,
                       route: '/cron',
                     ),
-                    
+
                     const SizedBox(height: 14),
                     _buildSectionHeader('SYSTEM OPS'),
                     _buildMenuItem(
                       context,
-                      title: 'Security / Firewall',
+                      title: 'Security & Firewall',
                       iconData: Icons.shield_rounded,
                       route: '/security',
                     ),
@@ -202,7 +215,7 @@ class Sidebar extends StatelessWidget {
                     ),
                     _buildMenuItem(
                       context,
-                      title: 'Maintenance',
+                      title: 'System Maintenance',
                       iconData: Icons.cleaning_services_rounded,
                       route: '/maintenance',
                     ),
@@ -228,14 +241,14 @@ class Sidebar extends StatelessWidget {
                 ),
               ),
 
-              // Server Health Pill
+              // Server Live Ping Pill
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF1E293B)),
+                  color: const Color(0xFF0F172A).withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.08)),
                 ),
                 child: Row(
                   children: [
@@ -247,8 +260,8 @@ class Sidebar extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withOpacity(0.5),
-                            blurRadius: 6,
+                            color: const Color(0xFF10B981).withOpacity(0.6),
+                            blurRadius: 8,
                             spreadRadius: 1,
                           ),
                         ],
@@ -257,46 +270,52 @@ class Sidebar extends StatelessWidget {
                     const SizedBox(width: 10),
                     const Expanded(
                       child: Text(
-                        'panel.xie.my.id • Live',
+                        'Toshiba VPS • Connected',
                         style: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 11,
+                          color: Color(0xFFCBD5E1),
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
-                    const Icon(Icons.wifi_tethering, size: 14, color: Color(0xFF64748B)),
+                    const Icon(Icons.wifi_tethering, size: 14, color: Color(0xFF10B981)),
                   ],
                 ),
               ),
 
-              // User Profile Area at bottom
+              // User Profile Footer
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF070B14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF040711),
                   border: Border(
-                    top: BorderSide(color: Color(0xFF1E293B), width: 1.0),
+                    top: BorderSide(color: Colors.white.withOpacity(0.07), width: 1.0),
                   ),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: 38,
+                      height: 38,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            primaryColor.withOpacity(0.3),
+                            primaryColor.withOpacity(0.35),
                             const Color(0xFF3B82F6).withOpacity(0.2),
                           ],
                         ),
-                        border: Border.all(color: primaryColor.withOpacity(0.4), width: 1.5),
+                        border: Border.all(color: primaryColor.withOpacity(0.5), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.2),
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
                       child: const Center(
-                        child: Icon(Icons.person_rounded, color: Colors.white, size: 18),
+                        child: Icon(Icons.person_rounded, color: Colors.white, size: 19),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -317,7 +336,7 @@ class Sidebar extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Superuser',
+                                'Superuser Host',
                                 style: TextStyle(
                                   color: primaryColor,
                                   fontSize: 11,
@@ -330,7 +349,7 @@ class Sidebar extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Logout',
+                      tooltip: 'Logout dari MSS Panel',
                       icon: const Icon(Icons.logout_rounded, color: Color(0xFF94A3B8), size: 19),
                       hoverColor: const Color(0xFFF43F5E).withOpacity(0.15),
                       onPressed: onLogout,
@@ -347,7 +366,7 @@ class Sidebar extends StatelessWidget {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 6),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 14, bottom: 6),
       child: Row(
         children: [
           Text(
@@ -363,7 +382,7 @@ class Sidebar extends StatelessWidget {
           Expanded(
             child: Container(
               height: 1,
-              color: const Color(0xFF1E293B),
+              color: Colors.white.withOpacity(0.06),
             ),
           ),
         ],
@@ -392,55 +411,67 @@ class Sidebar extends StatelessWidget {
               onNavigate(route);
             }
           },
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           hoverColor: primaryColor.withOpacity(0.08),
           splashColor: primaryColor.withOpacity(0.15),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9.5),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSelected ? primaryColor.withOpacity(0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              gradient: isSelected
+                  ? LinearGradient(
+                      colors: [
+                        primaryColor.withOpacity(0.2),
+                        primaryColor.withOpacity(0.04),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    )
+                  : null,
               border: Border.all(
-                color: isSelected ? primaryColor.withOpacity(0.35) : Colors.transparent,
+                color: isSelected ? primaryColor.withOpacity(0.4) : Colors.transparent,
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                // Glowing active line indicator
+                // Glowing active bar indicator
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  width: 3,
-                  height: isSelected ? 18 : 0,
+                  width: 3.5,
+                  height: isSelected ? 20 : 0,
                   margin: EdgeInsets.only(right: isSelected ? 10 : 0),
                   decoration: BoxDecoration(
                     color: primaryColor,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(3),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
                               color: primaryColor,
-                              blurRadius: 6,
-                              spreadRadius: 0.5,
+                              blurRadius: 8,
+                              spreadRadius: 1,
                             )
                           ]
                         : [],
                   ),
                 ),
-                // Icon with subtle container
+                // Icon Box
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(6.5),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? primaryColor.withOpacity(0.2)
+                        ? primaryColor.withOpacity(0.25)
                         : const Color(0xFF1E293B).withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(
+                      color: isSelected ? primaryColor.withOpacity(0.3) : Colors.transparent,
+                    ),
                   ),
                   child: Icon(
                     iconData,
                     size: 17,
-                    color: isSelected ? primaryColor : const Color(0xFF94A3B8),
+                    color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -450,7 +481,7 @@ class Sidebar extends StatelessWidget {
                     style: TextStyle(
                       color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
                       fontSize: 13.5,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                       letterSpacing: 0.2,
                     ),
                   ),
@@ -462,7 +493,7 @@ class Sidebar extends StatelessWidget {
                       color: (badgeColor ?? primaryColor).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(5),
                       border: Border.all(
-                        color: (badgeColor ?? primaryColor).withOpacity(0.3),
+                        color: (badgeColor ?? primaryColor).withOpacity(0.35),
                         width: 0.8,
                       ),
                     ),
@@ -471,7 +502,7 @@ class Sidebar extends StatelessWidget {
                       style: TextStyle(
                         color: badgeColor ?? primaryColor,
                         fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),

@@ -6,11 +6,13 @@ import 'container_log_dialog.dart';
 class ContainerCard extends StatefulWidget {
   final ContainerModel container;
   final Future<void> Function(String id, String action) onAction;
+  final void Function(String pairName)? onFilterPair;
 
   const ContainerCard({
     super.key,
     required this.container,
     required this.onAction,
+    this.onFilterPair,
   });
 
   @override
@@ -92,16 +94,33 @@ class _ContainerCardState extends State<ContainerCard> {
                 }
               }
             },
-            child: Text(
-              'Ya, $actionLabel',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Ya, $actionLabel', style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
+  }
+
+  IconData _getRoleIcon() {
+    final cat = widget.container.categoryType;
+    if (cat == 'database') return Icons.storage_rounded;
+    if (cat == 'core') return Icons.security_rounded;
+    if (cat == 'network') return Icons.cloud_sync_rounded;
+    if (cat == 'storage') return Icons.cloud_done_rounded;
+    if (cat == 'web') return Icons.language_rounded;
+    if (cat == 'app_pair') return Icons.hub_rounded;
+    return Icons.developer_board_rounded;
+  }
+
+  Color _getCategoryAccent() {
+    final cat = widget.container.categoryType;
+    if (cat == 'database') return const Color(0xFFF59E0B); // Amber
+    if (cat == 'core') return const Color(0xFF06B6D4); // Cyan
+    if (cat == 'network') return const Color(0xFF38BDF8); // Sky blue
+    if (cat == 'storage') return const Color(0xFF10B981); // Emerald
+    if (cat == 'web') return const Color(0xFF8B5CF6); // Purple
+    if (cat == 'app_pair') return const Color(0xFFEC4899); // Pink
+    return const Color(0xFF64748B);
   }
 
   @override
@@ -110,25 +129,33 @@ class _ContainerCardState extends State<ContainerCard> {
     final statusColor = isRunning
         ? const Color(0xFF10B981)
         : const Color(0xFFF43F5E);
+    final accent = _getCategoryAccent();
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A).withOpacity(0.85),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0F172A).withOpacity(0.92),
+                const Color(0xFF090E1A).withOpacity(0.85),
+              ],
+            ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: statusColor.withOpacity(0.35),
+              color: isRunning ? accent.withOpacity(0.4) : statusColor.withOpacity(0.35),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: statusColor.withOpacity(0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+                color: (isRunning ? accent : statusColor).withOpacity(0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
@@ -136,48 +163,59 @@ class _ContainerCardState extends State<ContainerCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Top Row: Container Name & Status Pill
+              // Top Section: Info & Identitas
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Row 1: Icon, Nama Container, & Status
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: accent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: accent.withOpacity(0.35)),
+                        ),
+                        child: Icon(
+                          _getRoleIcon(),
+                          size: 16,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(8),
+                            Text(
+                              widget.container.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
                               ),
-                              child: Icon(
-                                isRunning ? Icons.dns_rounded : Icons.pause_circle_outline_rounded,
-                                size: 16,
-                                color: statusColor,
-                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.container.name,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 0.2,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 1),
+                            Text(
+                              widget.container.role,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: accent.withOpacity(0.9),
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
+                      // Status Badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
+                          horizontal: 8,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
@@ -196,6 +234,12 @@ class _ContainerCardState extends State<ContainerCard> {
                               decoration: BoxDecoration(
                                 color: statusColor,
                                 shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: statusColor.withOpacity(0.6),
+                                    blurRadius: 6,
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 5),
@@ -213,63 +257,150 @@ class _ContainerCardState extends State<ContainerCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Image name with code pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF020617).withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF1E293B)),
-                    ),
-                    child: Text(
-                      widget.container.image,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontFamily: 'monospace',
-                        color: Color(0xFF94A3B8),
+
+                  const SizedBox(height: 10),
+
+                  // KOTAK PASANGAN / RELASI (HIGHLIGHT FITUR BARU)
+                  InkWell(
+                    onTap: widget.onFilterPair != null
+                        ? () => widget.onFilterPair!(widget.container.pairName)
+                        : null,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF0284C7).withOpacity(0.18),
+                            const Color(0xFF6366F1).withOpacity(0.12),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFF38BDF8).withOpacity(0.35),
+                          width: 1,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF38BDF8).withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.link_rounded,
+                              size: 13,
+                              color: Color(0xFF38BDF8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'PASANGAN: ',
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.8,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        widget.container.pairName,
+                                        style: const TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF38BDF8),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.container.pairRelationBadge,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.75),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 8),
-                  // Ports & ID
+
+                  // Metadata: Image & Ports
                   Row(
                     children: [
+                      // Image Tag
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF020617).withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF1E293B)),
+                          ),
+                          child: Text(
+                            widget.container.image,
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontFamily: 'monospace',
+                              color: Color(0xFF94A3B8),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // Ports
                       if (widget.container.ports.isNotEmpty) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF06B6D4).withOpacity(0.1),
+                            color: const Color(0xFF06B6D4).withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.25)),
+                            border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.3)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
                                 Icons.settings_ethernet_rounded,
-                                size: 12,
+                                size: 11,
                                 color: Color(0xFF06B6D4),
                               ),
-                              const SizedBox(width: 5),
+                              const SizedBox(width: 4),
                               Text(
                                 widget.container.ports,
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
                                   color: Color(0xFF06B6D4),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                       ],
+                      // Short ID
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
@@ -277,7 +408,7 @@ class _ContainerCardState extends State<ContainerCard> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          '#${widget.container.id.substring(0, widget.container.id.length > 8 ? 8 : widget.container.id.length)}',
+                          '#${widget.container.id.substring(0, widget.container.id.length > 7 ? 7 : widget.container.id.length)}',
                           style: const TextStyle(
                             fontSize: 10,
                             fontFamily: 'monospace',
@@ -290,9 +421,9 @@ class _ContainerCardState extends State<ContainerCard> {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
-              // Action Buttons Bar (Start, Stop, Restart)
+              // Action Buttons Bar (Start, Logs, Restart, Stop)
               _isLoading
                   ? const Center(
                       child: SizedBox(
@@ -311,7 +442,7 @@ class _ContainerCardState extends State<ContainerCard> {
                         if (!isRunning)
                           Expanded(
                             child: _buildActionButton(
-                              label: 'Start',
+                              label: 'Start Container',
                               icon: Icons.play_arrow_rounded,
                               color: const Color(0xFF10B981),
                               onPressed: () =>
@@ -377,7 +508,7 @@ class _ContainerCardState extends State<ContainerCard> {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          padding: const EdgeInsets.symmetric(vertical: 7.5, horizontal: 9),
           decoration: BoxDecoration(
             color: color.withOpacity(0.12),
             borderRadius: BorderRadius.circular(10),
@@ -387,12 +518,12 @@ class _ContainerCardState extends State<ContainerCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 15, color: color),
+              Icon(icon, size: 14, color: color),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),

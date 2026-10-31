@@ -31,6 +31,13 @@ class ThemeProvider extends ChangeNotifier {
       glow: Color(0xFF06B6D4),
     ),
     AccentTheme(
+      id: 'blue',
+      name: 'Electric Sapphire',
+      primary: Color(0xFF3B82F6),
+      secondary: Color(0xFF6366F1),
+      glow: Color(0xFF3B82F6),
+    ),
+    AccentTheme(
       id: 'purple',
       name: 'Neon Purple',
       primary: Color(0xFF8B5CF6),
@@ -39,10 +46,17 @@ class ThemeProvider extends ChangeNotifier {
     ),
     AccentTheme(
       id: 'green',
-      name: 'Hacker Green',
+      name: 'Emerald Matrix',
       primary: Color(0xFF10B981),
       secondary: Color(0xFF34D399),
       glow: Color(0xFF10B981),
+    ),
+    AccentTheme(
+      id: 'orange',
+      name: 'Sunset Orange',
+      primary: Color(0xFFF97316),
+      secondary: Color(0xFFFBBF24),
+      glow: Color(0xFFF97316),
     ),
     AccentTheme(
       id: 'red',
@@ -52,11 +66,11 @@ class ThemeProvider extends ChangeNotifier {
       glow: Color(0xFFEF4444),
     ),
     AccentTheme(
-      id: 'orange',
-      name: 'Sunset Orange',
-      primary: Color(0xFFF97316),
-      secondary: Color(0xFFFBBF24),
-      glow: Color(0xFFF97316),
+      id: 'pink',
+      name: 'Synthwave Pink',
+      primary: Color(0xFFEC4899),
+      secondary: Color(0xFF8B5CF6),
+      glow: Color(0xFFEC4899),
     ),
   ];
 
@@ -73,6 +87,23 @@ class ThemeProvider extends ChangeNotifier {
   Color get primary => currentTheme.primary;
   Color get secondary => currentTheme.secondary;
   Color get glow => currentTheme.glow;
+
+  LinearGradient get accentGradient => LinearGradient(
+        colors: [primary, secondary],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
+  List<BoxShadow> glowShadow({double blur = 18, double spread = 0, double opacity = 0.25}) {
+    return [
+      BoxShadow(
+        color: glow.withOpacity(opacity),
+        blurRadius: blur,
+        spreadRadius: spread,
+        offset: const Offset(0, 4),
+      ),
+    ];
+  }
 
   Future<void> _loadSavedTheme() async {
     final prefs = await SharedPreferences.getInstance();

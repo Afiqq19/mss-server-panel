@@ -18,19 +18,19 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
   IconData _getIconData(String iconName) {
     switch (iconName.toLowerCase()) {
       case 'docker':
-        return Icons.dns;
+        return Icons.layers_rounded;
       case 'cloud':
-        return Icons.cloud_circle;
+        return Icons.cloud_circle_rounded;
       case 'school':
-        return Icons.school;
+        return Icons.school_rounded;
       case 'storage':
-        return Icons.storage;
+        return Icons.storage_rounded;
       case 'database':
-        return Icons.dataset;
+        return Icons.dataset_rounded;
       case 'web':
-        return Icons.language;
+        return Icons.language_rounded;
       default:
-        return Icons.rocket_launch;
+        return Icons.rocket_launch_rounded;
     }
   }
 
@@ -77,7 +77,7 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
       child: GestureDetector(
         onTap: _launch,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: AnimatedContainer(
@@ -88,112 +88,117 @@ class _AppLauncherCardState extends State<AppLauncherCard> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.04),
-                    _isHovered ? color.withOpacity(0.1) : Colors.white.withOpacity(0.01),
+                    const Color(0xFF0F172A).withOpacity(0.85),
+                    _isHovered ? color.withOpacity(0.12) : const Color(0xFF0F172A).withOpacity(0.6),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: _isHovered
-                      ? color.withOpacity(0.6)
-                      : Colors.white.withOpacity(0.1),
+                  color: _isHovered ? color.withOpacity(0.6) : Colors.white.withOpacity(0.08),
                   width: _isHovered ? 1.5 : 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: _isHovered
-                        ? color.withOpacity(0.25)
-                    : Colors.black.withOpacity(0.3),
-                blurRadius: _isHovered ? 20 : 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Dynamic Icon Box
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      color.withOpacity(0.2),
-                      color.withOpacity(0.05),
-                    ],
+                    color: _isHovered ? color.withOpacity(0.2) : Colors.black.withOpacity(0.3),
+                    blurRadius: _isHovered ? 20 : 10,
+                    offset: const Offset(0, 5),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withOpacity(0.4)),
-                ),
-                child: Icon(
-                  _getIconData(widget.launcher.icon),
-                  color: color,
-                  size: 26,
-                ),
+                ],
               ),
-              const SizedBox(width: 14),
-              // App Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
+              child: Row(
+                children: [
+                  // Dynamic Icon Box with Aura
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          color.withOpacity(0.25),
+                          color.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: color.withOpacity(0.4)),
+                    ),
+                    child: Icon(
+                      _getIconData(widget.launcher.icon),
+                      color: color,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  // App Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            widget.launcher.name,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                widget.launcher.name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: color.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                widget.launcher.category.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.launcher.description ?? widget.launcher.url,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF94A3B8),
                           ),
-                          child: Text(
-                            widget.launcher.category.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: color,
-                            ),
-                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.launcher.description ?? widget.launcher.url,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF94A3B8),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _isHovered ? color.withOpacity(0.15) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
-                ),
+                    child: Icon(
+                      Icons.arrow_outward_rounded,
+                      size: 18,
+                      color: _isHovered ? color : const Color(0xFF475569),
+                    ),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.open_in_new,
-                size: 18,
-                color: _isHovered ? color : const Color(0xFF475569),
-              ),
-            ],
+            ),
           ),
-        ),
-        ),
         ),
       ),
     );

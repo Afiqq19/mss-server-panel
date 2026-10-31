@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../providers/theme_provider.dart';
 import '../models/app_launcher_model.dart';
 import '../models/container_model.dart';
 import '../models/host_stats_model.dart';
@@ -429,162 +431,259 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: Column(
               children: [
-                // Top Header Bar
-                Container(
-                  height: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [Color(0xFF0B1120), Color(0xFF0F172A)],
-                    ),
-                    border: Border(
-                      bottom: BorderSide(color: Color(0xFF1E293B), width: 1.5),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Breadcrumb or Title
-                      Row(
-                        children: [
-                          if (!isDesktop) ...[
-                            IconButton(
-                              icon: Icon(_currentRoute == '/terminal' ? Icons.arrow_back : Icons.menu, color: Colors.white),
-                              onPressed: () {
-                                if (_currentRoute == '/terminal') {
-                                  setState(() => _currentRoute = '/dashboard');
-                                  _saveRoute('/dashboard');
-                                } else {
-                                  _scaffoldKey.currentState?.openDrawer();
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            () {
-                              switch (_currentRoute) {
-                                case '/dashboard': return 'Dashboard Overview';
-                                case '/containers': return 'Docker Containers';
-                                case '/backup': return 'Storage & Backup (NAS)';
-                                case '/network': return 'Network & Ports';
-                                case '/installer': return 'App Installer (1-Click)';
-                                case '/database': return 'Database Manager';
-                                case '/cron': return 'Cron Jobs Scheduler';
-                                case '/security': return 'Security & Firewall';
-                                case '/services': return 'Services & Processes';
-                                case '/logs': return 'System Logs Viewer';
-                                case '/maintenance': return 'System Maintenance';
-                                case '/terminal': return 'Web Terminal (Root Host)';
-                                case '/settings': return 'Settings & Konfigurasi';
-                                default: return 'MSS Panel';
-                              }
-                            }(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: isDesktop ? 18 : 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              _appVersion,
-                              style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
-                            ),
-                          ),
-                        ],
+                // Top Header Bar (Modern Glassmorphism)
+                ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    child: Container(
+                      height: 70,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF060A17).withOpacity(0.85),
+                        border: Border(
+                          bottom: BorderSide(color: Colors.white.withOpacity(0.07), width: 1.0),
+                        ),
                       ),
-                      
-                      // Actions
-                      Row(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (isDesktop && _hostStats != null) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFF1E293B)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF10B981),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'CPU: ${_hostStats!.cpuUsagePercent.toStringAsFixed(0)}%  •  RAM: ${_hostStats!.ramUsedGb.toStringAsFixed(1)} GB',
-                                    style: const TextStyle(
-                                      color: Color(0xFFCBD5E1),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-
-                          // Refresh Button
-                          IconButton(
-                            tooltip: 'Refresh Data',
-                            icon: _isRefreshing
-                                ? SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                  )
-                                : const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF94A3B8)),
-                            onPressed: _isRefreshing
-                                ? null
-                                : () {
-                                    final api = context.read<ApiService>();
-                                    api.clearCache();
-                                    _refreshDataQuietly();
+                          // Breadcrumb or Title
+                          Row(
+                            children: [
+                              if (!isDesktop) ...[
+                                IconButton(
+                                  icon: Icon(_currentRoute == '/terminal' ? Icons.arrow_back : Icons.menu, color: Colors.white),
+                                  onPressed: () {
+                                    if (_currentRoute == '/terminal') {
+                                      setState(() => _currentRoute = '/dashboard');
+                                      _saveRoute('/dashboard');
+                                    } else {
+                                      _scaffoldKey.currentState?.openDrawer();
+                                    }
                                   },
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Backup E-Aspira Drawer Trigger (Bab 9.B)
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF3B82F6),
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              backgroundColor: const Color(0xFF3B82F6).withOpacity(0.1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              Text(
+                                () {
+                                  switch (_currentRoute) {
+                                    case '/dashboard': return 'Dashboard Overview';
+                                    case '/containers': return 'Docker Containers';
+                                    case '/backup': return 'Storage & Backup (NAS)';
+                                    case '/network': return 'Network & Ports';
+                                    case '/installer': return 'App Installer (1-Click)';
+                                    case '/database': return 'Database Manager';
+                                    case '/cron': return 'Cron Jobs Scheduler';
+                                    case '/security': return 'Security & Firewall';
+                                    case '/services': return 'Services & Processes';
+                                    case '/logs': return 'System Logs Viewer';
+                                    case '/maintenance': return 'System Maintenance';
+                                    case '/terminal': return 'Web Terminal (Root Host)';
+                                    case '/settings': return 'Settings & Konfigurasi';
+                                    default: return 'MSS Panel';
+                                  }
+                                }(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isDesktop ? 18 : 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
                               ),
-                            ),
-                            onPressed: () {
-                              setState(() => _currentRoute = '/backup');
-                              _saveRoute('/backup');
-                            },
-                            icon: const Icon(Icons.backup_rounded, size: 18),
-                            label: const Text(
-                              'Backup NAS',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  _appVersion,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // Actions
+                          Row(
+                            children: [
+                              // Live Server Clock
+                              if (isDesktop) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0F172A).withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.white.withOpacity(0.06)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        _currentTimeString,
+                                        style: const TextStyle(
+                                          color: Color(0xFFCBD5E1),
+                                          fontSize: 12,
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+
+                              if (isDesktop && _hostStats != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0F172A).withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.white.withOpacity(0.06)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF10B981),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'CPU: ${_hostStats!.cpuUsagePercent.toStringAsFixed(0)}%  •  RAM: ${_hostStats!.ramUsedGb.toStringAsFixed(1)} GB',
+                                        style: const TextStyle(
+                                          color: Color(0xFFCBD5E1),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                              ],
+
+                              // Quick Theme Palette Switcher
+                              PopupMenuButton<String>(
+                                tooltip: 'Ganti Warna Tema Futuristik',
+                                offset: const Offset(0, 45),
+                                color: const Color(0xFF0F172A),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                                ),
+                                icon: Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).primaryColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(9),
+                                    border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                                  ),
+                                  child: Icon(Icons.palette_rounded, size: 18, color: Theme.of(context).primaryColor),
+                                ),
+                                onSelected: (themeId) {
+                                  context.read<ThemeProvider>().setTheme(themeId);
+                                },
+                                itemBuilder: (ctx) {
+                                  return ThemeProvider.availableThemes.map((theme) {
+                                    final isCur = context.read<ThemeProvider>().currentThemeId == theme.id;
+                                    return PopupMenuItem<String>(
+                                      value: theme.id,
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 14,
+                                            height: 14,
+                                            decoration: BoxDecoration(
+                                              color: theme.primary,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(color: theme.primary, blurRadius: 6),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            theme.name,
+                                            style: TextStyle(
+                                              color: isCur ? Colors.white : const Color(0xFFCBD5E1),
+                                              fontWeight: isCur ? FontWeight.bold : FontWeight.w500,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          if (isCur) ...[
+                                            const Spacer(),
+                                            Icon(Icons.check, size: 16, color: theme.primary),
+                                          ],
+                                        ],
+                                      ),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                              const SizedBox(width: 6),
+
+                              // Refresh Button
+                              IconButton(
+                                tooltip: 'Segarkan Data',
+                                icon: _isRefreshing
+                                    ? SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                      )
+                                    : const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF94A3B8)),
+                                onPressed: _isRefreshing
+                                    ? null
+                                    : () {
+                                        final api = context.read<ApiService>();
+                                        api.clearCache();
+                                        _refreshDataQuietly();
+                                      },
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Backup E-Aspira Drawer Trigger (Bab 9.B)
+                              TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Theme.of(context).primaryColor,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  setState(() => _currentRoute = '/backup');
+                                  _saveRoute('/backup');
+                                },
+                                icon: const Icon(Icons.backup_rounded, size: 17),
+                                label: const Text(
+                                  'Backup NAS',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 

@@ -60,6 +60,10 @@ class PortainerController extends Controller
                         }
                     }
 
+                    $labels = $item['Labels'] ?? [];
+                    $stack = $labels['com.docker.compose.project'] ?? null;
+                    $service = $labels['com.docker.compose.service'] ?? null;
+
                     return [
                         'id' => substr($item['Id'] ?? '', 0, 12),
                         'name' => $name,
@@ -67,6 +71,8 @@ class PortainerController extends Controller
                         'status' => $item['Status'] ?? '',
                         'image' => $item['Image'] ?? '',
                         'ports' => implode(', ', $ports),
+                        'stack' => $stack,
+                        'service' => $service,
                     ];
                 })->values()->all();
             } catch (\Throwable $e) {

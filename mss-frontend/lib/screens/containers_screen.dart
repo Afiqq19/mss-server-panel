@@ -19,6 +19,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
   List<ContainerModel> _containers = [];
   String _searchQuery = '';
   String _filterStatus = 'all'; // all, running, stopped
+  String _viewMode = 'grouped'; // grouped, grid
   Timer? _refreshTimer;
 
   @override
@@ -125,15 +126,29 @@ class _ContainersScreenState extends State<ContainersScreen> {
 
   List<ContainerModel> get _filteredContainers {
     return _containers.where((c) {
-      final matchSearch = _searchQuery.isEmpty ||
-          c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          c.image.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          c.ports.toLowerCase().contains(_searchQuery.toLowerCase());
+      final q = _searchQuery.toLowerCase();
+      final matchSearch = q.isEmpty ||
+          c.name.toLowerCase().contains(q) ||
+          c.image.toLowerCase().contains(q) ||
+          c.ports.toLowerCase().contains(q) ||
+          c.stackName.toLowerCase().contains(q) ||
+          c.role.toLowerCase().contains(q) ||
+          c.pairName.toLowerCase().contains(q) ||
+          c.pairRelationBadge.toLowerCase().contains(q);
       final matchFilter = _filterStatus == 'all' ||
           (_filterStatus == 'running' && c.isRunning) ||
           (_filterStatus == 'stopped' && !c.isRunning);
       return matchSearch && matchFilter;
     }).toList();
+  }
+
+  Map<String, List<ContainerModel>> get _groupedContainers {
+    final filtered = _filteredContainers;
+    final map = <String, List<ContainerModel>>{};
+    for (final c in filtered) {
+      map.putIfAbsent(c.stackName, () => []).add(c);
+    }
+    return map;
   }
 
   @override
@@ -241,6 +256,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
 
     final runningCount = _containers.where((c) => c.isRunning).length;
     final stoppedCount = _containers.length - runningCount;
+    final totalStacks = _containers.map((c) => c.stackName).toSet().length;
     final filtered = _filteredContainers;
     final isMobile = MediaQuery.of(context).size.width < 768;
 
@@ -249,11 +265,12 @@ class _ContainersScreenState extends State<ContainersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Bar dengan Title & Refresh Button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          // Header Bar dengan Title, View Mode Switcher, & Refresh Button
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrowHeader = constraints.maxWidth < 650;
+
+              final titleSection = Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -275,18 +292,40 @@ class _ContainersScreenState extends State<ContainersScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'DOCKER CONTAINERS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Docker Containers',
+                            style: TextStyle(
+                              fontSize: 18,
+                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF06B6D4).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.35)),
+                            ),
+                            child: const Text(
+                              'v1.5.1-ECOSYSTEM',
+                              style: TextStyle(
+                                color: Color(0xFF06B6D4),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Live Host Namespace • ${runningCount} Berjalan Aktif',
+                        'Relasi Pasangan Web & DB • $runningCount Aktif • $totalStacks Stack/Proyek',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF94A3B8),
@@ -295,25 +334,75 @@ class _ContainersScreenState extends State<ContainersScreen> {
                     ],
                   ),
                 ],
-              ),
-              // Refresh Icon Button
-              IconButton(
-                tooltip: 'Segarkan Data Docker',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
-                  side: const BorderSide(color: Color(0xFF1E293B)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                icon: _isRefreshing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF06B6D4)),
-                      )
-                    : const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF06B6D4)),
-                onPressed: _isRefreshing ? null : _manualRefresh,
-              ),
-            ],
+              );
+
+              final controlsSection = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // View Mode Toggle (Grouped vs Grid)
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF1E293B)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildViewModeButton(
+                          mode: 'grouped',
+                          icon: Icons.hub_rounded,
+                          tooltip: 'Grup Stack & Pasangan',
+                        ),
+                        _buildViewModeButton(
+                          mode: 'grid',
+                          icon: Icons.grid_view_rounded,
+                          tooltip: 'Semua Kartu (Grid)',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Refresh Button
+                  IconButton(
+                    tooltip: 'Segarkan Data Docker',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F172A),
+                      side: const BorderSide(color: Color(0xFF1E293B)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: _isRefreshing
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF06B6D4)),
+                          )
+                        : const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF06B6D4)),
+                    onPressed: _isRefreshing ? null : _manualRefresh,
+                  ),
+                ],
+              );
+
+              if (isNarrowHeader) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleSection,
+                    const SizedBox(height: 14),
+                    controlsSection,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  titleSection,
+                  controlsSection,
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 22),
@@ -326,7 +415,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
                 _buildModernSummaryCard(
                   label: 'TOTAL MICROSERVICES',
                   value: '${_containers.length}',
-                  subtitle: 'Container terpasang',
+                  subtitle: '$totalStacks Ekosistem Stack',
                   icon: Icons.layers_rounded,
                   gradient: const [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                   accentColor: const Color(0xFF8B5CF6),
@@ -377,7 +466,7 @@ class _ContainersScreenState extends State<ContainersScreen> {
                 child: TextField(
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: 'Cari container, image, atau port (contoh: 8080, redis)...',
+                    hintText: 'Cari container, pasangan, image, stack, port (contoh: db-easpira, 8080)...',
                     hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF06B6D4), size: 20),
                     suffixIcon: _searchQuery.isNotEmpty
@@ -420,41 +509,239 @@ class _ContainersScreenState extends State<ContainersScreen> {
             },
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
 
-          // Container Grid / Empty State
+          // TAMPILAN UTAMA (MODE GRUP STACK & PASANGAN ATAU GRID)
           if (filtered.isEmpty)
             _buildModernEmptyState()
+          else if (_viewMode == 'grouped')
+            _buildGroupedStackView(filtered)
           else
-            LayoutBuilder(
-              builder: (context, constraints) {
-                int crossAxisCount = 3;
-                if (constraints.maxWidth < 720) {
-                  crossAxisCount = 1;
-                } else if (constraints.maxWidth < 1180) {
-                  crossAxisCount = 2;
-                }
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    mainAxisExtent: 178,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    return ContainerCard(
-                      container: filtered[index],
-                      onAction: _handleAction,
-                    );
-                  },
-                );
-              },
-            ),
+            _buildClassicGridView(filtered),
         ],
       ),
+    );
+  }
+
+  Widget _buildViewModeButton({
+    required String mode,
+    required IconData icon,
+    required String tooltip,
+  }) {
+    final isActive = _viewMode == mode;
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: () => setState(() => _viewMode = mode),
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFF06B6D4).withOpacity(0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isActive ? const Color(0xFF06B6D4).withOpacity(0.5) : Colors.transparent,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isActive ? const Color(0xFF06B6D4) : const Color(0xFF64748B),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Tampilan Stack & Pasangan Berkelompok
+  Widget _buildGroupedStackView(List<ContainerModel> filtered) {
+    final grouped = _groupedContainers;
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) {
+        final pA = grouped[a]!.first.stackPriority;
+        final pB = grouped[b]!.first.stackPriority;
+        return pA.compareTo(pB);
+      });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: sortedKeys.map((stackName) {
+        final items = grouped[stackName]!;
+        final runningInStack = items.where((c) => c.isRunning).length;
+        final isAllRunning = runningInStack == items.length;
+        final isAllStopped = runningInStack == 0;
+
+        Color stackStatusColor = const Color(0xFF10B981);
+        String stackStatusText = 'SEMUA AKTIF';
+        if (isAllStopped) {
+          stackStatusColor = const Color(0xFFF43F5E);
+          stackStatusText = 'OFFLINE';
+        } else if (!isAllRunning) {
+          stackStatusColor = const Color(0xFFF59E0B);
+          stackStatusText = '$runningInStack/${items.length} AKTIF';
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 26),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF090E1A).withOpacity(0.65),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: const Color(0xFF1E293B).withOpacity(0.8),
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Stack
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF06B6D4).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.3)),
+                        ),
+                        child: const Icon(Icons.hub_rounded, size: 18, color: Color(0xFF06B6D4)),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            stackName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${items.length} Microservice Berpasangan',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  // Stack Health Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: stackStatusColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: stackStatusColor.withOpacity(0.35)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: stackStatusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          stackStatusText,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: stackStatusColor,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Grid Item di dalam Stack (Web & DB Berdampingan)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount = 3;
+                  if (constraints.maxWidth < 720) {
+                    crossAxisCount = 1;
+                  } else if (constraints.maxWidth < 1180) {
+                    crossAxisCount = 2;
+                  }
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      mainAxisExtent: 228,
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      return ContainerCard(
+                        container: items[index],
+                        onAction: _handleAction,
+                        onFilterPair: (pair) {
+                          setState(() => _searchQuery = pair);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Tampilan Grid Klasik
+  Widget _buildClassicGridView(List<ContainerModel> filtered) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 3;
+        if (constraints.maxWidth < 720) {
+          crossAxisCount = 1;
+        } else if (constraints.maxWidth < 1180) {
+          crossAxisCount = 2;
+        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 228,
+          ),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            return ContainerCard(
+              container: filtered[index],
+              onAction: _handleAction,
+              onFilterPair: (pair) {
+                setState(() => _searchQuery = pair);
+              },
+            );
+          },
+        );
+      },
     );
   }
 
