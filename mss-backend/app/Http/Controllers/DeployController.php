@@ -107,8 +107,8 @@ class DeployController extends Controller
             $syncOutput = shell_exec("cp -r \"$backendPublicDir\"/* \"$frontendBuildDir\"/ 2>&1");
         }
 
-        // 6b. Reload Nginx configuration agar security headers dan hardening langsung aktif
-        $nginxOutput = $this->runHostCommand("docker exec mss-frontend nginx -t 2>&1 && docker exec mss-frontend nginx -s reload 2>&1");
+        // 6b. Salin & Muat ulang Nginx configuration agar security headers, proxy websocket, dan hardening langsung aktif
+        $nginxOutput = $this->runHostCommand("docker cp \"$repoDir/nginx-frontend.conf\" mss-frontend:/etc/nginx/conf.d/default.conf 2>&1 && docker exec mss-frontend nginx -t 2>&1 && docker restart mss-frontend 2>&1");
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
