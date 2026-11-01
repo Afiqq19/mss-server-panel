@@ -107,8 +107,8 @@ class DeployController extends Controller
             $syncOutput = shell_exec("cp -r \"$backendPublicDir\"/* \"$frontendBuildDir\"/ 2>&1");
         }
 
-        // 6b. Temukan mount path dan reload nginx
-        $nginxOutput = $this->runHostCommand("docker inspect mss-frontend --format '{{ range .Mounts }}{{ .Source }} -> {{ .Destination }}{{ println }}{{ end }}'");
+        // 6b. Restart container mss-frontend dan mss-ttyd agar konfigurasi terbaru aktif sepenuhnya
+        $nginxOutput = $this->runHostCommand("docker restart mss-frontend mss-ttyd 2>&1");
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
