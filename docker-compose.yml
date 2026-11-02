@@ -131,7 +131,9 @@ services:
       - -i
       - -n
       - -p
-      - /bin/login
+      - --
+      - /bin/bash
+      - -l
     networks:
       - mss-network
 

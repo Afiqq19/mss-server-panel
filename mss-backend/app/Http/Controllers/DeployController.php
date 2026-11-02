@@ -107,8 +107,9 @@ class DeployController extends Controller
             $syncOutput = shell_exec("cp -r \"$backendPublicDir\"/* \"$frontendBuildDir\"/ 2>&1");
         }
 
-        // 6b. Restart container mss-frontend dan mss-ttyd agar konfigurasi terbaru aktif sepenuhnya
-        $nginxOutput = $this->runHostCommand("docker restart mss-frontend mss-ttyd 2>&1");
+        // 6b. Recreate mss-ttyd dengan command bash root & restart mss-frontend
+        $hostRepoDir = '/home/mss/mss-server-panel';
+        $nginxOutput = $this->runHostCommand("cd \"$hostRepoDir\" && docker compose up -d --force-recreate mss-ttyd 2>&1 && docker restart mss-frontend 2>&1");
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
