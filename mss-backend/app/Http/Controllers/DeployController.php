@@ -113,6 +113,7 @@ class DeployController extends Controller
 
         // 7. Selesai
         $timestamp = date('d M Y - H:i:s T');
+        $laravelLog = @shell_exec("tail -n 30 " . escapeshellarg($appDir . '/storage/logs/laravel.log') . " 2>&1");
 
         // Jika dipanggil via API atau curl, kembalikan JSON
         if ($wantsJson) {
@@ -125,7 +126,8 @@ class DeployController extends Controller
                 'git' => trim((string)$gitOutput),
                 'migrate' => trim((string)$migrate),
                 'cache' => trim((string)$optimize),
-                'nginx' => trim((string)$nginxOutput)
+                'nginx' => trim((string)$nginxOutput),
+                'laravel_log' => trim((string)$laravelLog)
             ]);
         }
 
