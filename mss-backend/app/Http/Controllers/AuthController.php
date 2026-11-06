@@ -49,13 +49,13 @@ class AuthController extends Controller
                 $query->orWhereRaw('LOWER(username) = ?', [$lowerInput]);
             }
 
-            // Jika user mengetik 'admin', cocokkan juga akun admin bawaan sistem
-            if ($lowerInput === 'admin') {
-                $query->orWhere('email', 'admin@mepal.local')
-                      ->orWhere('name', 'MSS Panel Administrator');
-                if ($hasUsernameCol) {
-                    $query->orWhereNull('username');
-                }
+            // Jika user mengetik alias admin, cocokkan langsung akun utama
+            if (in_array($lowerInput, ['admin', 'msyafiq19', 'admin@mepal.local', 'projek.msyafiq19@gmail.com'])) {
+                $query->orWhere('id', 1)
+                      ->orWhere('email', 'admin@mepal.local')
+                      ->orWhere('email', 'projek.msyafiq19@gmail.com')
+                      ->orWhere('username', 'admin')
+                      ->orWhere('username', 'msyafiq19');
             }
         })->first();
 

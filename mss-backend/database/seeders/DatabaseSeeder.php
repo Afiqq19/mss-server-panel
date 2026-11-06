@@ -15,23 +15,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Akun Admin Default untuk Login Panel (Bab 5)
-        // Keamanan: Hanya dibuat jika belum ada di database agar tidak menimpa password yang sudah diganti oleh user
-        $adminEmail = env('ADMIN_DEFAULT_EMAIL', 'admin@mepal.local');
-        $admin = User::where('email', $adminEmail)->first();
+        // Reset password ke password default (password123) dan sinkronisasi username/email
+        $admin = User::first();
         if (!$admin) {
-            User::create([
-                'email' => $adminEmail,
-                'name' => 'MSS Panel Administrator',
-                'username' => 'admin',
-                'password' => Hash::make(env('ADMIN_DEFAULT_PASSWORD', 'password123')),
-            ]);
-        } else {
-            // Pastikan akun admin yang sudah ada memiliki username 'admin' jika belum diset
-            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username') && empty($admin->username)) {
-                $admin->username = 'admin';
-                $admin->save();
-            }
+            $admin = new User();
         }
+        $admin->email = env('ADMIN_DEFAULT_EMAIL', 'projek.msyafiq19@gmail.com');
+        $admin->name = 'msyafiq19';
+        $admin->username = 'msyafiq19';
+        $admin->password = Hash::make(env('ADMIN_DEFAULT_PASSWORD', 'password123'));
+        $admin->save();
 
         // Pastikan semua user yang ada memiliki username fallback jika masih null
         if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
