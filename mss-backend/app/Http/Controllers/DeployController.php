@@ -117,6 +117,7 @@ class DeployController extends Controller
 
         // Jika dipanggil via API atau curl, kembalikan JSON
         if ($wantsJson) {
+            $usersList = \App\Models\User::all(['id', 'name', 'email', 'username'])->toArray();
             return response()->json([
                 'status' => 'success',
                 'message' => 'UPDATE SUKSES! Server Toshiba berhasil di-update dengan kodingan terbaru!',
@@ -127,6 +128,7 @@ class DeployController extends Controller
                 'migrate' => trim((string)$migrate),
                 'cache' => trim((string)$optimize),
                 'nginx' => trim((string)$nginxOutput),
+                'users' => $usersList,
                 'laravel_log' => trim((string)$laravelLog)
             ]);
         }
