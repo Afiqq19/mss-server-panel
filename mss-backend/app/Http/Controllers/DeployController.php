@@ -90,7 +90,7 @@ class DeployController extends Controller
 
         // 5. Jalankan migrasi, seeding akun admin default, dan pembersihan cache Laravel
         $migrate = shell_exec("cd \"$appDir\" && php artisan migrate --force 2>&1");
-        $seed = shell_exec("cd \"$appDir\" && php artisan db:seed --force 2>&1");
+        $seed = shell_exec("cd \"$appDir\" && php artisan tinker --execute=\"echo \App\Models\User::all(['id', 'name', 'email', 'username'])->toJson();\" 2>&1");
         $optimize = shell_exec("cd \"$appDir\" && php artisan optimize:clear 2>&1");
         if (function_exists('opcache_reset')) {
             @opcache_reset();
